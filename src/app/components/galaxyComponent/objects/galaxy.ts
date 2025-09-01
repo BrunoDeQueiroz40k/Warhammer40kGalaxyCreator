@@ -4,14 +4,17 @@ import { ARMS, ARM_X_DIST, ARM_X_MEAN, ARM_Y_DIST, ARM_Y_MEAN, CORE_X_DIST, CORE
 import { gaussianRandom, spiral } from "../utils";
 import { mulberry32 } from "../prng";
 import { Haze } from "./haze";
+import { Planet, PlanetData } from "./planet";
 
 export class Galaxy {
     scene: THREE.Scene;
     stars: Star[];
     haze: Haze[];
+    planets: Planet[];
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
+        this.planets = [];
         const rand = mulberry32(123456);
         this.stars = this.generateObject(NUM_STARS, (pos: THREE.Vector3) => new Star(pos), rand);
         this.haze = this.generateObject(NUM_STARS * HAZE_RATIO, (pos: THREE.Vector3) => new Haze(pos), rand);
@@ -26,6 +29,9 @@ export class Galaxy {
         });
         this.haze.forEach((haze) => {
             haze.updateScale(camera);
+        });
+        this.planets.forEach((planet) => {
+            planet.updateScale(camera);
         });
     }
 
@@ -66,5 +72,33 @@ export class Galaxy {
         }
 
         return objects;
+    }
+
+    addPlanet(planetData: PlanetData): Planet {
+        const planet = new Planet(planetData);
+        planet.toThreeObject(this.scene);
+        planet.enterEditMode(this.scene); // Enter edit mode by default
+        this.planets.push(planet);
+        return planet;
+    }
+
+    getPlanetInEditMode(): Planet | null {
+        return this.planets.find(planet => planet.isInEditMode) || null;
+    }
+
+    confirmPlanetPosition(planet: Planet) {
+        planet.exitEditMode(this.scene);
+    }
+
+    removePlanet(planet: Planet): void {
+        const index = this.planets.indexOf(planet);
+        if (index > -1) {
+            planet.removeFromScene(this.scene);
+            this.planets.splice(index, 1);
+        }
+    }
+
+    getPlanets(): Planet[] {
+        return this.planets;
     }
 }
