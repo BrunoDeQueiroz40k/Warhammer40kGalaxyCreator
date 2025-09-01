@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import { BLOOM_LAYER, STAR_MAX, STAR_MIN } from '../config/renderConfig';
-import { starTypes } from '../config/starDistributions';
-import { clamp } from '../utils';
+import * as THREE from "three";
+import { BLOOM_LAYER, STAR_MAX, STAR_MIN } from "../config/renderConfig";
+import { starTypes } from "../config/starDistributions";
+import { clamp } from "../utils";
 
 const texture = new THREE.TextureLoader().load('/assets/GalaxyMap/sprite120.png');
 const materials: THREE.SpriteMaterial[] = starTypes.color.map((color: number) => new THREE.SpriteMaterial({ map: texture, color }));

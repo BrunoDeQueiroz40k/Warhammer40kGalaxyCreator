@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 export function SideBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +14,6 @@ export function SideBar() {
 
   return (
     <div className="relative">
-      {/* Botão que será empurrado */}
       <Button
         onClick={toggleSidebar}
         className={cn(
@@ -29,10 +28,8 @@ export function SideBar() {
         )}
       </Button>
 
-      {/* Overlay para fechar ao clicar fora */}
       {isOpen && <div className="fixed inset-0 z-40" onClick={toggleSidebar} />}
 
-      {/* Sidebar simples */}
       <div
         className={cn(
           "fixed bottom-3.5 top-3.5 left-0 w-64 bg-black/90 border border-amber-500/30",

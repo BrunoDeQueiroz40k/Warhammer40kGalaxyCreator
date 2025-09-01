@@ -1,6 +1,6 @@
 import { BASE_LAYER, HAZE_MAX, HAZE_MIN, HAZE_OPACITY } from "../config/renderConfig";
 import { clamp } from "../utils";
-import * as THREE from 'three';
+import * as THREE from "three";
 
 
 const hazeTexture = new THREE.TextureLoader().load('/assets/GalaxyMap/feathered60.png');

@@ -1,8 +1,8 @@
 "use client";
 
-import { SideBar } from "@/components/SideBar";
+import { AddButton } from "./components/AddButton";
 import GalaxyComponent from "./components/galaxyComponent/GalaxyComponent";
-import { AddButton } from "@/components/AddButton";
+import { SideBar } from "./components/SideBar";
 
 export default function Home() {
   return (

@@ -1,9 +1,9 @@
-import * as THREE from 'three';
-import { Star } from './star';
-import { ARMS, ARM_X_DIST, ARM_X_MEAN, ARM_Y_DIST, ARM_Y_MEAN, CORE_X_DIST, CORE_Y_DIST, GALAXY_THICKNESS, HAZE_RATIO, NUM_STARS, OUTER_CORE_X_DIST, OUTER_CORE_Y_DIST } from '../config/galaxyConfig';
-import { gaussianRandom, spiral } from '../utils';
-import { mulberry32 } from '../prng';
-import { Haze } from './haze';
+import * as THREE from "three";
+import { Star } from "./star";
+import { ARMS, ARM_X_DIST, ARM_X_MEAN, ARM_Y_DIST, ARM_Y_MEAN, CORE_X_DIST, CORE_Y_DIST, GALAXY_THICKNESS, HAZE_RATIO, NUM_STARS, OUTER_CORE_X_DIST, OUTER_CORE_Y_DIST } from "../config/galaxyConfig";
+import { gaussianRandom, spiral } from "../utils";
+import { mulberry32 } from "../prng";
+import { Haze } from "./haze";
 
 export class Galaxy {
     scene: THREE.Scene;
@@ -12,7 +12,6 @@ export class Galaxy {
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
-        // Use uma seed fixa para sempre gerar a mesma galáxia
         const rand = mulberry32(123456);
         this.stars = this.generateObject(NUM_STARS, (pos: THREE.Vector3) => new Star(pos), rand);
         this.haze = this.generateObject(NUM_STARS * HAZE_RATIO, (pos: THREE.Vector3) => new Haze(pos), rand);
