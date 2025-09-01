@@ -1,8 +1,9 @@
 "use client";
 
-import { AddButton } from "./components/AddButton";
-import GalaxyComponent from "./components/galaxyComponent/GalaxyComponent";
 import { SideBar } from "./components/SideBar";
+import { AddButton } from "./components/AddButton";
+import { HelpButton } from "./components/HelpButton";
+import GalaxyComponent from "./components/galaxyComponent/GalaxyComponent";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
         <GalaxyComponent />
       </div>
       <AddButton />
+      <HelpButton />
     </main>
   );
 }

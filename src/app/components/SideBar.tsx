@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { Menu, Orbit, Shell, X } from "lucide-react";
+import { Planet } from "@phosphor-icons/react";
+
+const sideLinks = [
+  { name: "Galáxia", icon: Orbit, href: "" },
+  { name: "Planetas", icon: Planet, href: "" },
+  { name: "Segmentum", icon: Shell, href: "" },
+];
 
 export function SideBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,21 +44,21 @@ export function SideBar() {
           isOpen ? "translate-x-3.5" : "-translate-x-full"
         )}
       >
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="p-4 px-2">
+          <h2 className="pl-2 text-lg font-semibold text-amber-400 mb-4">
             Galaxy Creator
           </h2>
 
           <div className="space-y-2 text-white">
-            <div className="p-2 rounded hover:bg-gray-100 cursor-pointer">
-              Galáxia
-            </div>
-            <div className="p-2 rounded hover:bg-gray-100 cursor-pointer">
-              Configurações
-            </div>
-            <div className="p-2 rounded hover:bg-gray-100 cursor-pointer">
-              Ajuda
-            </div>
+            {sideLinks.map((item) => (
+              <Button
+                key={item.name}
+                className="relative w-full justify-start py-1.5 pl-2 text-white bg-transparent border-transparent hover:bg-amber-500/15 hover:border-amber-500/30"
+              >
+                <item.icon className="!h-5 !w-5" />
+                <span className="text-lg font-medium">{item.name}</span>
+              </Button>
+            ))}
           </div>
         </div>
       </div>

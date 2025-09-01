@@ -17,6 +17,9 @@ const buttonVariants = cva(
           "text-gray-300 text-green-400 bg-green-500/10 border border-green-500/30 transition-all duration-100 hover:bg-green-500/20",
         cancel:
           "text-gray-300 text-red-400 bg-red-500/10 border border-red-500/30 transition-all duration-100 hover:bg-red-500/20",
+        white:
+          "text-gray-300 text-white bg-white/10 border border-white/30 transition-all duration-100 hover:bg-white/20",
+        blue: "text-gray-300 text-blue-400 bg-blue-400/15 border border-blue-500/30 transition-all duration-100 hover:bg-blue-500/20",
         ghost: "hover:bg-accent hover:text-accent-foreground",
       },
       size: {
