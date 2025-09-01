@@ -3,23 +3,21 @@ import { BLOOM_LAYER, STAR_MAX, STAR_MIN } from "../config/renderConfig";
 import { starTypes } from "../config/starDistributions";
 import { clamp } from "../utils";
 
-interface EditIndicator extends THREE.Sprite {
-    ring?: THREE.Mesh;
-}
+// No interface needed for EditIndicator anymore
 
 const texture = new THREE.TextureLoader().load('/assets/GalaxyMap/sprite120.png');
 const materials: THREE.SpriteMaterial[] = starTypes.color.map((color: number) => new THREE.SpriteMaterial({ map: texture, color }));
 
 export interface PlanetData {
-  name: string;
-  faction: string;
-  planetType: string;
-  description: string;
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
+    name: string;
+    faction: string;
+    planetType: string;
+    description: string;
+    position: {
+        x: number;
+        y: number;
+        z: number;
+    };
 }
 
 export class Planet {
@@ -97,57 +95,27 @@ export class Planet {
         if (this.editIndicator) {
             // Remove the arrow indicator
             scene.remove(this.editIndicator);
-            
-            // Remove the ring if it exists
-            const indicator = this.editIndicator as EditIndicator;
-            if (indicator.ring) {
-                scene.remove(indicator.ring);
-            }
-            
             this.editIndicator = null;
         }
     }
 
     private createEditIndicator(scene: THREE.Scene) {
-        // Create a small directional arrow indicator using sprite
-        const arrowTexture = new THREE.TextureLoader().load('/assets/GalaxyMap/sprite120.png');
-        const arrowMaterial = new THREE.SpriteMaterial({ 
+        // Create a directional arrow indicator using arrow.png image
+        const arrowTexture = new THREE.TextureLoader().load('/assets/GalaxyMap/arrow.png');
+        const arrowMaterial = new THREE.SpriteMaterial({
             map: arrowTexture,
-            color: 0x00ff00, 
-            transparent: true, 
-            opacity: 0.9
+            transparent: true,
+            opacity: 0.9,
         });
-        
+
         this.editIndicator = new THREE.Sprite(arrowMaterial);
         this.editIndicator.position.copy(this.position);
-        this.editIndicator.position.y += 25; // Position above the planet
-        this.editIndicator.scale.set(15, 15, 15); // Small size
+        this.editIndicator.position.z += 0.7; // Position above the planet
+        this.editIndicator.scale.set(0.5, 0.5, 0.5); // Smaller size for arrow
         this.editIndicator.layers.set(BLOOM_LAYER);
         this.editIndicator.renderOrder = 1001; // Render above planet
         (this.editIndicator.material as THREE.Material).depthTest = false; // Always visible
-        
-        // Add a border ring around the planet
-        const ringGeometry = new THREE.RingGeometry(12, 16, 16);
-        const ringMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x00ff00, 
-            transparent: true, 
-            opacity: 0.8,
-            side: THREE.DoubleSide
-        });
-        
-        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-        ring.rotation.x = -Math.PI / 2; // Lay flat
-        ring.position.copy(this.position);
-        ring.layers.set(BLOOM_LAYER);
-        ring.renderOrder = 1001; // Render above planet
-        (ring.material as THREE.Material).depthTest = false; // Always visible
-        
-        // Add ring to scene
-        scene.add(ring);
-        
-        // Store ring reference for cleanup
-        (this.editIndicator as EditIndicator).ring = ring;
-        
+
         scene.add(this.editIndicator);
     }
 
@@ -158,13 +126,7 @@ export class Planet {
         }
         if (this.editIndicator) {
             this.editIndicator.position.copy(newPosition);
-            this.editIndicator.position.y = newPosition.y + 25; // Keep arrow above
-            
-            // Update ring position
-            const indicator = this.editIndicator as EditIndicator;
-            if (indicator.ring) {
-                indicator.ring.position.copy(newPosition);
-            }
+            this.editIndicator.position.z = newPosition.z + 0.7; // Keep arrow above
         }
     }
 }

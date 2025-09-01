@@ -99,7 +99,7 @@ export function AddButton() {
               <Dialog.Title className="text-xl font-semibold mb-4">
                 Crie o seu planeta!
               </Dialog.Title>
-              <Dialog.Description className="mb-4 space-y-4">
+              <Dialog.Description>
                 <Label>Nome:</Label>
                 <Input
                   type="text"
@@ -144,14 +144,12 @@ export function AddButton() {
                     Clique e arraste para posicioná-lo onde desejar, depois use o botão &quot;Posicionar Planeta&quot; para confirmar.
                   </p>
                 </div> */}
-                <div>
-                  <Label>Descrição:</Label>
-                  <Textarea
-                    placeholder="Descreva o planeta"
-                    value={planetData.description}
-                    onChange={(e) => setPlanetData({ ...planetData, description: e.target.value })}
-                  />
-                </div>
+                <Label>Descrição:</Label>
+                <Textarea
+                  placeholder="Descreva o planeta"
+                  value={planetData.description}
+                  onChange={(e) => setPlanetData({ ...planetData, description: e.target.value })}
+                />
               </Dialog.Description>
               <div className="flex gap-3 justify-end">
                 <Dialog.Close asChild>
