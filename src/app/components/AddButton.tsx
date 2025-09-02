@@ -22,8 +22,8 @@ const planetColors = [
   { name: "Verde", text: "text-emerald-500" },
   { name: "Vermelho", text: "text-red-500" },
   { name: "Amarelo", text: "text-amber-500" },
-  { name: "Roxo", text: "text-purple-500" }
-]
+  { name: "Roxo", text: "text-purple-500" },
+];
 
 interface GalaxyInstance {
   addPlanet: (planetData: PlanetData) => void;
@@ -159,12 +159,19 @@ export function AddButton() {
                   setPlanetData({ ...planetData, planetType: value })
                 }
               >
-                <SelectTrigger className="w-full" placeholderIcon={<PlanetIcon className="w-5 h-5" />}>
+                <SelectTrigger
+                  className="w-full"
+                  placeholderIcon={<PlanetIcon className="w-5 h-5" />}
+                >
                   <SelectValue placeholder="Selecione o tipo do planeta" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[250px]">
                   {planetTypes.map((planetType) => (
-                    <SelectItem key={planetType.value} value={planetType.value} icon={<planetType.icon className="w-4 h-4" />}>
+                    <SelectItem
+                      key={planetType.value}
+                      value={planetType.value}
+                      icon={<planetType.icon className="w-4 h-4" />}
+                    >
                       {planetType.value}
                     </SelectItem>
                   ))}
@@ -191,13 +198,17 @@ export function AddButton() {
               <Label>Selecione a cor do planeta:</Label>
               <div className="flex justify-between mt-2">
                 {planetColors.map((color) => (
-                  <button key={color.name} type="button" onClick={() => setSelectedColor(color.name)}
+                  <button
+                    key={color.name}
+                    type="button"
+                    onClick={() => setSelectedColor(color.name)}
                     className={`
                         py-5 px-3 rounded-md border text-amber-400 border-amber-500/30 transition-all duration-100 hover:bg-amber-500/15 cursor-pointer
-                        ${selectedColor === color.name
-                        ? 'text-amber-400 bg-amber-500/20 border border-amber-500/30'
-                        : 'hover:bg-amber-500/20'
-                      }
+                        ${
+                          selectedColor === color.name
+                            ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
+                            : "hover:bg-amber-500/20"
+                        }
                         ${color.text}
                       `}
                     title={color.name}
@@ -232,7 +243,7 @@ export function AddButton() {
         <Button
           variant="white"
           onClick={handleConfirmPosition}
-          className="fixed bottom-3.5 left-48 z-20 p-2 px-4 text-lg"
+          className="fixed bottom-3.5 left-60 z-20 p-2 px-4 text-lg"
         >
           <ArrowDownToLine className="!w-5 !h-5" />
           <span>Posicionar Planeta</span>
