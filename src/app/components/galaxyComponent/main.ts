@@ -1,4 +1,19 @@
 import * as THREE from "three";
+import { PlanetData } from "./objects/planet";
+
+// Extend window interface for global Three.js objects
+declare global {
+  interface Window {
+    camera?: THREE.PerspectiveCamera;
+    renderer?: THREE.WebGLRenderer;
+  }
+}
+
+// Interface for sprite with custom planet properties
+interface PlanetSprite extends THREE.Sprite {
+  isPlanet?: boolean;
+  planetData?: PlanetData;
+}
 
 // Data and visualization
 import { CompositionShader } from "./shaders/CompositionShader";
@@ -35,12 +50,166 @@ let galaxy: Galaxy | null = null;
 // Planet editing variables
 let currentPlanet: Planet | null = null;
 let planetMoveSpeed = 0.1; // Base movement speed
-let isMovingPlanet = false;
+
+
+// Planet click detection
+let raycaster: THREE.Raycaster;
+let mouse: THREE.Vector2;
+
+// Camera and renderer will be exposed globally after initialization
 
 function setupPlanetEditing() {
   // Add keyboard event listeners for planet movement
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
+
+  // Add click event listener for planet selection
+  canvas.addEventListener("click", onCanvasClick);
+}
+
+function onCanvasClick(event: MouseEvent) {
+  console.log("Canvas clicked!", event);
+  if (!galaxy) {
+    console.log("No galaxy instance found");
+    return;
+  }
+
+  // Only handle left clicks for planet selection
+  if (event.button !== 0) return;
+
+  // Calculate mouse position in normalized device coordinates
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  console.log("Mouse position:", mouse);
+
+  // Update raycaster
+  raycaster.setFromCamera(mouse, camera);
+
+  // Get all planets from galaxy
+  const planets = galaxy.getPlanets();
+  console.log("Total planets:", planets.length);
+  const planetObjects = planets.map(planet => planet.obj).filter(obj => obj !== null);
+  console.log("Planet objects:", planetObjects.length);
+
+  // Check for intersections with different approaches
+  raycaster.near = 0;
+  raycaster.far = 1000000; // Very large far distance
+
+  // Try intersection with all objects first
+  const allIntersects = raycaster.intersectObjects(scene.children);
+  console.log("All scene intersections found:", allIntersects.length);
+
+  // Also try intersection with bloom layer objects (where planets are)
+  raycaster.layers.set(BLOOM_LAYER);
+  const bloomIntersects = raycaster.intersectObjects(scene.children);
+  console.log("Bloom layer intersections found:", bloomIntersects.length);
+
+  // Combine and sort intersections by renderOrder (highest first) to prioritize planets
+  const combinedIntersects = [...allIntersects, ...bloomIntersects];
+  combinedIntersects.sort((a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0));
+
+  // Reset raycaster to default layer
+  raycaster.layers.set(0);
+
+  // Log the first few intersections to see what's blocking
+  combinedIntersects.slice(0, 5).forEach((intersect, index) => {
+    console.log(`Combined Intersection ${index}:`, {
+      object: intersect.object,
+      distance: intersect.distance,
+      point: intersect.point.toArray(),
+      uuid: intersect.object.uuid,
+      renderOrder: intersect.object.renderOrder,
+      layers: intersect.object.layers.mask
+    });
+  });
+
+  // Then try with just planets
+  const intersects = raycaster.intersectObjects(planetObjects);
+  console.log("Planet intersections found:", intersects.length);
+
+  // Try with recursive search
+  const recursiveIntersects = raycaster.intersectObjects(planetObjects, true);
+  console.log("Recursive planet intersections found:", recursiveIntersects.length);
+
+  // Debug: Log planet positions and sizes
+  planets.forEach((planet, index) => {
+    if (planet.obj) {
+      console.log(`Planet ${index}:`, {
+        position: planet.obj.position.toArray(),
+        scale: planet.obj.scale.toArray(),
+        visible: planet.obj.visible,
+        renderOrder: planet.obj.renderOrder,
+        layers: planet.obj.layers.mask
+      });
+    }
+  });
+
+  // Debug: Log raycaster details
+  console.log("Raycaster:", {
+    ray: {
+      origin: raycaster.ray.origin.toArray(),
+      direction: raycaster.ray.direction.toArray()
+    },
+    near: raycaster.near,
+    far: raycaster.far
+  });
+
+  // Debug: Log camera position
+  console.log("Camera position:", camera.position.toArray());
+
+  // Check if any of the intersections are planets
+  let clickedPlanet = null;
+
+  // First try direct planet intersections
+  if (intersects.length > 0) {
+    const clickedObject = intersects[0].object;
+    clickedPlanet = planets.find(planet => planet.obj === clickedObject);
+  }
+
+  // If no direct planet intersection, check all intersections for planets
+  // Since we sorted by renderOrder, check the first intersection (highest priority)
+  if (!clickedPlanet && combinedIntersects.length > 0) {
+    const firstIntersect = combinedIntersects[0];
+    console.log("Checking first intersection (highest renderOrder):", {
+      renderOrder: firstIntersect.object.renderOrder,
+      uuid: firstIntersect.object.uuid,
+      isPlanet: (firstIntersect.object as PlanetSprite).isPlanet
+    });
+
+    // Check if the first intersected object is a planet using custom property
+    if ((firstIntersect.object as PlanetSprite).isPlanet) {
+      const planetData = (firstIntersect.object as PlanetSprite).planetData;
+      clickedPlanet = planets.find(planet => planet.data === planetData);
+      console.log("Found planet using isPlanet property:", planetData);
+      console.log("Intersected object UUID:", firstIntersect.object.uuid);
+    } else {
+      // Fallback: check by UUID
+      const planet = planets.find(planet => planet.obj && planet.obj.uuid === firstIntersect.object.uuid);
+      if (planet && planet.obj) {
+        clickedPlanet = planet;
+        console.log("Found planet in all intersections:", planet.data);
+        console.log("Planet UUID:", planet.obj.uuid);
+        console.log("Intersected object UUID:", firstIntersect.object.uuid);
+      }
+    }
+  }
+
+  if (clickedPlanet) {
+    // Prevent orbit controls from processing this click
+    event.stopPropagation();
+    event.preventDefault();
+
+    console.log("Planet clicked:", clickedPlanet.data);
+    // Dispatch custom event with planet data
+    const planetClickEvent = new CustomEvent('planetClick', {
+      detail: { planet: clickedPlanet }
+    });
+    window.dispatchEvent(planetClickEvent);
+  } else {
+    console.log("No planet intersection found");
+  }
 }
 
 function onKeyDown(event: KeyboardEvent) {
@@ -52,7 +221,7 @@ function onKeyDown(event: KeyboardEvent) {
   // Set current planet for movement
   if (!currentPlanet) {
     currentPlanet = planetInEditMode;
-    isMovingPlanet = true;
+
     console.log("Planet movement started");
     console.log(
       "Controls: W/A/S/D (X/Z), Q/E (Y), R (speed up), T (speed down)"
@@ -97,7 +266,7 @@ function onKeyUp(event: KeyboardEvent) {
 
   // Stop movement when movement keys are released
   if (["w", "a", "s", "d", "q", "e"].includes(key)) {
-    isMovingPlanet = false;
+
   }
 }
 
@@ -114,7 +283,6 @@ function movePlanet(deltaX: number, deltaY: number, deltaZ: number) {
 // Function to clear current planet when it exits edit mode
 function clearCurrentPlanet() {
   currentPlanet = null;
-  isMovingPlanet = false;
 }
 
 function initThree(): void {
@@ -135,6 +303,9 @@ function initThree(): void {
   camera.position.set(0, 500, 500);
   camera.up.set(0, 0, 1);
   camera.lookAt(0, 0, 0);
+  
+  // Update global camera reference
+  window.camera = camera;
 
   // map orbit
   orbit = new OrbitControls(camera, canvas);
@@ -152,6 +323,10 @@ function initThree(): void {
 
   // Expose galaxy instance globally for external access
   (window as { galaxyInstance?: Galaxy }).galaxyInstance = galaxy;
+
+  // Initialize raycaster for planet clicking
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
 
   // Add event listeners for planet editing
   setupPlanetEditing();
@@ -171,6 +346,9 @@ function initRenderPipeline(): void {
   renderer.outputColorSpace = THREE.SRGBColorSpace as unknown as number;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
+  
+  // Update global renderer reference
+  window.renderer = renderer;
 
   // General-use rendering pass for chaining
   const renderScene = new RenderPass(scene, camera);

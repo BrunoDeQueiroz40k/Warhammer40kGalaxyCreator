@@ -6,30 +6,75 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Select = SelectPrimitive.Root
+// Context to store item icons
+const SelectContext = React.createContext<{
+   itemIcons: Map<string, React.ReactNode>;
+   setItemIcon: (value: string, icon: React.ReactNode) => void;
+   selectedValue: string;
+}>({
+   itemIcons: new Map(),
+   setItemIcon: () => { },
+   selectedValue: "",
+})
+
+const Select = ({ children, onValueChange, ...props }: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => {
+   const [itemIcons, setItemIcons] = React.useState<Map<string, React.ReactNode>>(new Map())
+   const [selectedValue, setSelectedValue] = React.useState<string>("")
+
+   const setItemIcon = React.useCallback((value: string, icon: React.ReactNode) => {
+      setItemIcons(prev => new Map(prev.set(value, icon)))
+   }, [])
+
+   const handleValueChange = (value: string) => {
+      setSelectedValue(value)
+      onValueChange?.(value)
+   }
+
+   return (
+      <SelectContext.Provider value={{ itemIcons, setItemIcon, selectedValue }}>
+         <SelectPrimitive.Root onValueChange={handleValueChange} {...props}>
+            {children}
+         </SelectPrimitive.Root>
+      </SelectContext.Provider>
+   )
+}
 
 const SelectGroup = SelectPrimitive.Group
 
 const SelectValue = SelectPrimitive.Value
 
+interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
+   placeholderIcon?: React.ReactNode;
+}
+
 const SelectTrigger = React.forwardRef<
    React.ElementRef<typeof SelectPrimitive.Trigger>,
-   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-   <SelectPrimitive.Trigger
-      ref={ref}
-      className={cn(
-         "flex h-10 mt-1 mb-2.5 w-[180px] [&>span]:translate-y-[-1px] bg-slate-800/20 border-amber-500/30 text-slate-200 items-center justify-between rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-         className
-      )}
-      {...props}
-   >
-      {children}
-      <SelectPrimitive.Icon asChild>
-         <ChevronDown className="h-4 w-4 opacity-50" />
-      </SelectPrimitive.Icon>
-   </SelectPrimitive.Trigger>
-))
+   SelectTriggerProps
+>(({ className, children, placeholderIcon, ...props }, ref) => {
+   const { itemIcons, selectedValue } = React.useContext(SelectContext)
+
+   // Get the icon for the selected value
+   const selectedIcon = selectedValue ? itemIcons.get(selectedValue) : placeholderIcon
+
+   return (
+      <SelectPrimitive.Trigger
+         ref={ref}
+         className={cn(
+            "flex h-10 mt-1 mb-2.5 w-[180px] [&>span]:translate-y-[-1px] bg-slate-800/20 border-amber-500/30 text-slate-200 items-center justify-between rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+            className
+         )}
+         {...props}
+      >
+         <div className="flex items-center gap-2">
+            {selectedIcon}
+            {children}
+         </div>
+         <SelectPrimitive.Icon asChild>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+         </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+   )
+})
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
 const SelectScrollUpButton = React.forwardRef<
@@ -39,7 +84,7 @@ const SelectScrollUpButton = React.forwardRef<
    <SelectPrimitive.ScrollUpButton
       ref={ref}
       className={cn(
-         "flex cursor-default items-center justify-center py-1",
+         "flex cursor-default items-center justify-center py-0.5 bg-gray-600/10",
          className
       )}
       {...props}
@@ -56,7 +101,7 @@ const SelectScrollDownButton = React.forwardRef<
    <SelectPrimitive.ScrollDownButton
       ref={ref}
       className={cn(
-         "flex cursor-default items-center justify-center py-1",
+         "flex cursor-default items-center justify-center py-0.5 bg-gray-600/15",
          className
       )}
       {...props}
@@ -111,28 +156,55 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+interface SelectItemProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> {
+   icon?: React.ReactNode;
+}
+
 const SelectItem = React.forwardRef<
    React.ElementRef<typeof SelectPrimitive.Item>,
-   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-   <SelectPrimitive.Item
-      ref={ref}
-      className={cn(
-         "relative flex w-full hover:bg-amber-500/10 select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 border-transparent border hover:border-amber-500/30 cursor-pointer group",
-         className
-      )}
-      {...props}
-   >
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/15 to-amber-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 pointer-events-none opacity-0 group-hover:opacity-100" />
-      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-         <SelectPrimitive.ItemIndicator>
-            <Check className="h-4 w-4" />
-         </SelectPrimitive.ItemIndicator>
-      </span>
+   SelectItemProps
+>(({ className, children, icon, value, ...props }, ref) => {
+   const { setItemIcon } = React.useContext(SelectContext)
 
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-   </SelectPrimitive.Item>
-))
+   // Register the icon when the component mounts
+   React.useEffect(() => {
+      if (icon && value) {
+         setItemIcon(value, icon)
+      }
+   }, [icon, value, setItemIcon])
+
+   return (
+      <SelectPrimitive.Item
+         ref={ref}
+         className={cn(
+            "relative flex w-full hover:bg-amber-500/10 select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 border-transparent border hover:border-amber-500/30 cursor-pointer group",
+            className
+         )}
+         value={value}
+         {...props}
+      >
+         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/15 to-amber-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 pointer-events-none opacity-0 group-hover:opacity-100" />
+         <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+            <SelectPrimitive.ItemIndicator>
+               <Check className="h-4 w-4" />
+            </SelectPrimitive.ItemIndicator>
+            {!icon && <SelectPrimitive.ItemIndicator />}
+         </span>
+         {icon && (
+            <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+               <SelectPrimitive.ItemIndicator>
+                  <Check className="h-4 w-4" />
+               </SelectPrimitive.ItemIndicator>
+               <span className="group-data-[state=checked]:hidden">
+                  {icon}
+               </span>
+            </span>
+         )}
+
+         <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      </SelectPrimitive.Item>
+   )
+})
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
 const SelectSeparator = React.forwardRef<

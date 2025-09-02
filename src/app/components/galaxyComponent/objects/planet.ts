@@ -3,6 +3,12 @@ import { BLOOM_LAYER, STAR_MAX, STAR_MIN } from "../config/renderConfig";
 import { starTypes } from "../config/starDistributions";
 import { clamp } from "../utils";
 
+// Interface for sprite with custom planet properties
+interface PlanetSprite extends THREE.Sprite {
+  isPlanet?: boolean;
+  planetData?: PlanetData;
+}
+
 // No interface needed for EditIndicator anymore
 
 const texture = new THREE.TextureLoader().load('/assets/GalaxyMap/sprite120.png');
@@ -13,6 +19,7 @@ export interface PlanetData {
     faction: string;
     planetType: string;
     description: string;
+    color?: string;
     position: {
         x: number;
         y: number;
@@ -65,9 +72,12 @@ export class Planet {
         sprite.scale.multiplyScalar(starTypes.size[this.starType]);
         sprite.position.copy(this.position);
 
-        // Make planet more visible and easier to interact with
-        sprite.renderOrder = 1000; // Render on top
-        sprite.material.depthTest = false; // Always render on top
+        // Only add what's needed for raycasting - keep original appearance
+        sprite.renderOrder = 999999; // Maximum render order for raycasting priority
+    
+    // Add a custom property to identify this as a planet
+    (sprite as PlanetSprite).isPlanet = true;
+    (sprite as PlanetSprite).planetData = this.data;
 
         this.obj = sprite;
 

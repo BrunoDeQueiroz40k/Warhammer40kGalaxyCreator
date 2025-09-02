@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { Menu, Orbit, Shell, X } from "lucide-react";
-import { Planet } from "@phosphor-icons/react";
+import { Menu, Shell, X } from "lucide-react";
+import { GiGalaxy, GiRingedPlanet } from "react-icons/gi";
 
 const sideLinks = [
-  { name: "Galáxia", icon: Orbit, href: "" },
-  { name: "Planetas", icon: Planet, href: "" },
+  { name: "Galáxia", icon: GiGalaxy, href: "" },
+  { name: "Planetas", icon: GiRingedPlanet, href: "" },
   { name: "Segmentum", icon: Shell, href: "" },
 ];
 
