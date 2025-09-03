@@ -16,6 +16,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { PlanetIcon } from "@phosphor-icons/react";
 import { ArrowDownToLine, Plus } from "lucide-react";
 import { PlanetData, Planet } from "./galaxyComponent/objects/planet";
+import { SegmentumSelector } from "./SegmentumSelector";
 
 const planetColors = [
   { name: "Azul", text: "text-blue-500" },
@@ -40,6 +41,9 @@ export function AddButton() {
     position: { x: 0, y: 0, z: 0 },
   });
   const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSegmentum, setSelectedSegmentum] = useState<string | null>(
+    null
+  );
   const [open, setOpen] = useState(false);
   const [planetInEditMode, setPlanetInEditMode] = useState<Planet | null>(null);
 
@@ -52,6 +56,7 @@ export function AddButton() {
       const planetDataWithDefaultPosition = {
         ...planetData,
         color: selectedColor,
+        segmentum: selectedSegmentum || undefined,
         position: { x: 0, y: 0, z: 0 },
       };
 
@@ -70,6 +75,7 @@ export function AddButton() {
         position: { x: 0, y: 0, z: 0 },
       });
       setSelectedColor("");
+      setSelectedSegmentum(null);
 
       // Close dialog
       setOpen(false);
@@ -120,7 +126,7 @@ export function AddButton() {
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Dialog.Content className="bg-black/90 rounded-md border border-amber-500/30 p-6 w-full max-w-md text-white">
+            <Dialog.Content className="bg-black/90 rounded-md border border-amber-500/30 p-6 w-full max-w-lg text-white max-h-[90vh] overflow-y-auto">
               <Dialog.Title className="text-xl font-semibold mb-4">
                 Crie o seu planeta!
               </Dialog.Title>
@@ -196,7 +202,7 @@ export function AddButton() {
                 }
               />
               <Label>Selecione a cor do planeta:</Label>
-              <div className="flex justify-between mt-2">
+              <div className="flex justify-between my-2">
                 {planetColors.map((color) => (
                   <button
                     key={color.name}
@@ -219,6 +225,13 @@ export function AddButton() {
                   </button>
                 ))}
               </div>
+
+              <Label>Selecione o Segmentum:</Label>
+              <SegmentumSelector
+                selectedSegmentum={selectedSegmentum}
+                onSegmentumSelect={setSelectedSegmentum}
+              />
+
               <div className="flex gap-3 justify-end mt-4">
                 <Dialog.Close asChild>
                   <Button variant="cancel" className="px-4 py-2">

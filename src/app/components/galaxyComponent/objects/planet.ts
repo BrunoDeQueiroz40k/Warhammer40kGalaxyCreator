@@ -31,6 +31,7 @@ export interface PlanetData {
   planetType: string;
   description: string;
   color?: string;
+  segmentum?: string;
   position: {
     x: number;
     y: number;

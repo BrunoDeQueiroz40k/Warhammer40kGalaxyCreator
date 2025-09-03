@@ -18,8 +18,6 @@ export function PlanetCard({
   planet,
   position,
   onClose,
-  onEdit,
-  onDelete,
 }: PlanetCardProps) {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -28,9 +26,7 @@ export function PlanetCard({
     setTimeout(onClose, 300); // Delay para animação
   };
 
-  const planetType = planetTypes.find(
-    (type) => type.value === planet.planetType
-  );
+
 
   // Função para mapear facções para variantes do badge
   const getFactionVariant = (
@@ -81,7 +77,7 @@ export function PlanetCard({
             <div>
               <h1 className="text-3xl font-bold text-white">{planet.name}</h1>
               <h2 className="text-[15px] font-semibold text-amber-400">
-                Segmentum Solar
+                {planet.segmentum || "Segmentum Solar"}
               </h2>
             </div>
           </div>
@@ -127,17 +123,14 @@ export function PlanetCard({
           </div>
 
           {/* Descrição */}
-          {planet.description && (
-            <div className="border border-amber-500/30 rounded-md p-4 px-6 space-y-1 w-full">
-              <p className="text-slate-400 font-bold text-xs">
-                RELATÓRIO IMPERIAL
-              </p>
-              <p className="text-slate-100 leading-relaxed">
-                {planet.description ||
-                  "Nenhum relatório disponível ou atribuído"}
-              </p>
-            </div>
-          )}
+          <div className="border border-amber-500/30 rounded-md p-4 px-6 space-y-1 w-full">
+            <p className="text-slate-400 font-bold text-xs">
+              RELATÓRIO IMPERIAL
+            </p>
+            <p className="text-slate-100">
+              {planet.description || "Nenhum relatório disponível ou atribuído"}
+            </p>
+          </div>
         </div>
       </div>
       <div className="bg-black h-8 w-28 [clip-path:polygon(50%_100%,0_0,100%_0)] absolute left-1/2 -bottom-7 -translate-x-1/2"></div>
