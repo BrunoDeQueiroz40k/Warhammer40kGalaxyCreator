@@ -14,7 +14,7 @@ const segmentums: Segmentum[] = [
     color: "rgba(220, 38, 38, 0.6)", // Vermelho escuro
     selectedColor: "rgba(220, 38, 38, 0.9)",
     path: "M-127.44-128.025-145.485-153.45C-218.475-89.37-209.295-2.79-178.2 49.545L-205.65 68.13C-150.975 166.725-21.51 165.96 46.26 115.74L27.18 89.055C44.685 77.805 126.81-.135 61.425-122.58L84.465-139.05C76.95-152.145 49.14-180.63 27.18-188.775L1.8-139.05C-9.99-144.54-70.92-175.95-126.9-127.035",
-    textPosition: { x: 600, y: 300 },
+    textPosition: { x: 650, y: 550 },
   },
   {
     id: "pacificus",
@@ -22,7 +22,7 @@ const segmentums: Segmentum[] = [
     color: "rgba(251, 146, 60, 0.6)", // Laranja
     selectedColor: "rgba(251, 146, 60, 0.9)",
     path: "M-264.465-326.13C-403.65-220.86-481.005-22.59-366.705 176.085L-178.785 49.86C-221.4-18.18-203.175-107.64-146.34-154.53",
-    textPosition: { x: 200, y: 450 },
+    textPosition: { x: 400, y: 490 },
   },
   {
     id: "tempestus",
@@ -30,7 +30,7 @@ const segmentums: Segmentum[] = [
     color: "rgba(6, 182, 212, 0.6)", // Azul-petróleo
     selectedColor: "rgba(6, 182, 212, 0.9)",
     path: "M-390.78 194.31C-359.505 260.55-290.16 329.085-251.37 358.74L-264.6 376.335C-231.84 410.985-142.11 452.025-108.36 460.665L-115.29 493.695C-57.6 506.7 116.865 518.76 255.825 407.07L45.45 115.65C8.82 152.28-126.405 189.135-206.46 69.885",
-    textPosition: { x: 600, y: 600 },
+    textPosition: { x: 600, y: 830 },
   },
   {
     id: "obscurus",
@@ -38,17 +38,26 @@ const segmentums: Segmentum[] = [
     color: "rgba(163, 230, 53, 0.6)", // Amarelo-esverdeado
     selectedColor: "rgba(163, 230, 53, 0.9)",
     path: "M354.33-322.74C273.6-422.505 188.82-466.515 109.845-489.87L100.125-467.55C61.515-477.945-41.535-505.17-174.645-464.31L-186.705-483.255C-239.22-469.575-301.455-425.115-322.785-409.635L-127.26-128.79C-70.02-173.835-14.04-148.455 1.62-139.815L26.73-190.575C53.415-177.21 82.71-144.27 84.15-138.96",
-    textPosition: { x: 1000, y: 600 },
+    textPosition: { x: 700, y: 250 },
   },
   {
     id: "ultima",
-    name: "Ultima Tempestus",
+    name: "Ultima Segmentum",
     color: "rgba(147, 51, 234, 0.6)", // Azul-púrpura
     selectedColor: "rgba(147, 51, 234, 0.9)",
     path: "M61.2-121.185l537.255-364.86c23.895 31.59 48.735 61.785 66.24 98.82l-66.375 32.625c42.975 81.675 66.24 159.66 80.82 243.855l75.105-7.155c12.465 98.55 10.305 241.65-40.86 367.335l-38.16-11.7c-29.385 75.105-76.005 163.26-132.705 225.675l26.82 24.84c-46.305 50.715-98.685 97.02-160.74 130.14L26.055 89.73c33.615-18.54 98.235-111.195 34.47-210.78",
-    textPosition: { x: 930, y: 300 },
+    textPosition: { x: 1100, y: 575 },
   },
 ];
+
+// Tamanhos de texto específicos para cada segmento
+const segmentumTextSizes: Record<string, number> = {
+  solar: 40,
+  pacificus: 40,
+  tempestus: 60,
+  obscurus: 65,
+  ultima: 75,
+};
 
 interface SegmentumSelectorProps {
   selectedSegmentum: string | null;
@@ -61,8 +70,11 @@ export function SegmentumSelector({
 }: SegmentumSelectorProps) {
   return (
     <div className="w-full h-96 mt-2 bg-black/20 border border-amber-500/30 rounded-lg relative overflow-visible">
-      {/* Background galaxy effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 rounded-lg"></div>
+      {/* Background galaxy image */}
+      <div
+        className="absolute inset-0 rounded-lg bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/assets/imgs/galaxy.webp)" }}
+      ></div>
 
       {/* SVG with segmentums */}
       <svg
@@ -72,29 +84,6 @@ export function SegmentumSelector({
         className="relative z-10"
         preserveAspectRatio="xMidYMid meet"
       >
-        {/* Galaxy background pattern */}
-        <defs>
-          <radialGradient id="galaxyGradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.1)" />
-            <stop offset="50%" stopColor="rgba(147, 51, 234, 0.1)" />
-            <stop offset="100%" stopColor="rgba(0, 0, 0, 0.3)" />
-          </radialGradient>
-          <pattern
-            id="stars"
-            x="1000"
-            y="1000"
-            width="20"
-            height="20"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx="10" cy="10" r="0.5" fill="rgba(255, 255, 255, 0.3)" />
-          </pattern>
-        </defs>
-
-        {/* Galaxy background expandido */}
-        <rect x="-200" y="-300" width="2000" height="1600" fill="url(#galaxyGradient)" />
-        <rect x="-200" y="-200" width="2000" height="1600" fill="url(#stars)" />
-
         {/* Grupo com transformação para centralizar todos os segmentos */}
         <g transform="translate(450, 350)">
           {/* Segmentum borders */}
@@ -104,7 +93,7 @@ export function SegmentumSelector({
             ))}
           </g>
 
-          {/* Segmentums */}
+          {/* Segmentums - apenas os paths */}
           {segmentums.map((segmentum) => {
             const isSelected = selectedSegmentum === segmentum.id;
             const fillColor = isSelected
@@ -112,25 +101,49 @@ export function SegmentumSelector({
               : segmentum.color;
 
             return (
-              <g key={segmentum.id}>
-                <path
-                  d={segmentum.path}
-                  fill={fillColor}
-                  stroke="rgba(34, 197, 94, 0.8)"
-                  strokeWidth="5"
-                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                  onClick={() => onSegmentumSelect(segmentum.id)}
-                />
-                <text
+              <path
+                key={segmentum.id}
+                d={segmentum.path}
+                fill={fillColor}
+                stroke="rgba(34, 197, 94, 0.8)"
+                strokeWidth="5"
+                className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                onClick={() => onSegmentumSelect(segmentum.id)}
+              />
+            );
+          })}
+
+          {/* Textos dos segmentos - renderizados por último para ficarem por cima */}
+          {segmentums.map((segmentum) => {
+            const nameParts = segmentum.name.split(" ");
+            const firstLine = nameParts[0];
+            const secondLine = nameParts.slice(1).join(" ");
+            const fontSize = segmentumTextSizes[segmentum.id] || 24;
+
+            return (
+              <text
+                key={`text-${segmentum.id}`}
+                x={segmentum.textPosition.x - 700}
+                y={segmentum.textPosition.y - 580}
+                textAnchor="middle"
+                className="fill-white text-xs font-semibold pointer-events-none select-none"
+                style={{ fontSize: `${fontSize}px` }}
+              >
+                <tspan
                   x={segmentum.textPosition.x - 700}
-                  y={segmentum.textPosition.y - 500}
-                  textAnchor="middle"
-                  className="fill-white text-xs font-semibold pointer-events-none select-none"
-                  style={{ fontSize: "30px" }}
+                  dy="0"
+                  style={{ lineHeight: `${fontSize * 0.5}px` }}
                 >
-                  {segmentum.name}
-                </text>
-              </g>
+                  {firstLine}
+                </tspan>
+                <tspan
+                  x={segmentum.textPosition.x - 700}
+                  dy={`${fontSize * 1}`}
+                  style={{ lineHeight: `${fontSize * 1}px` }}
+                >
+                  {secondLine}
+                </tspan>
+              </text>
             );
           })}
         </g>
