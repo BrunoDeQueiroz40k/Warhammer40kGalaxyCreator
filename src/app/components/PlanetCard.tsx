@@ -77,7 +77,7 @@ export function PlanetCard({
             <div>
               <h1 className="text-3xl font-bold text-white">{planet.name}</h1>
               <h2 className="text-[15px] font-semibold text-amber-400">
-                {planet.segmentum || "Segmentum Solar"}
+                {`Segmentum ${planet.segmentum || "Solar"}`}
               </h2>
             </div>
           </div>
