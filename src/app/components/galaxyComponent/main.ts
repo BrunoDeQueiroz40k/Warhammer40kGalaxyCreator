@@ -34,6 +34,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { Galaxy } from "./objects/galaxy";
 import { Planet } from "./objects/planet";
+import { Segmentum, segmentums } from "./objects/segmentum";
 
 // No interface needed for EditIndicator anymore
 
@@ -46,6 +47,7 @@ let baseComposer!: EffectComposer;
 let bloomComposer!: EffectComposer;
 let overlayComposer!: EffectComposer;
 let galaxy: Galaxy | null = null;
+let segmentumObjects: Segmentum[] = [];
 
 // Planet editing variables
 let currentPlanet: Planet | null = null;
@@ -285,6 +287,32 @@ function clearCurrentPlanet() {
   currentPlanet = null;
 }
 
+function createSegmentums() {
+  // Clear existing segmentums
+  segmentumObjects.forEach(segmentum => {
+    scene.remove(segmentum.obj);
+  });
+  segmentumObjects = [];
+
+  // Create new segmentums
+  segmentums.forEach(segmentumData => {
+    const segmentum = new Segmentum(segmentumData, scene);
+    segmentumObjects.push(segmentum);
+  });
+}
+
+function toggleSegmentums(show: boolean) {
+  segmentumObjects.forEach(segmentum => {
+    segmentum.toggleVisibility(show);
+  });
+}
+
+function updateSegmentumVisibility() {
+  segmentumObjects.forEach(segmentum => {
+    segmentum.updateVisibility(camera);
+  });
+}
+
 function initThree(): void {
   // grab canvas
   canvas = document.querySelector("#canvas") as HTMLCanvasElement;
@@ -319,7 +347,19 @@ function initThree(): void {
 
   galaxy = new Galaxy(scene);
 
-  (window as { galaxyInstance?: Galaxy }).galaxyInstance = galaxy;
+  // Create segmentums
+  createSegmentums();
+
+  // Expose galaxy instance and segmentum functions globally
+  (window as { 
+    galaxyInstance?: Galaxy;
+    toggleSegmentums?: (show: boolean) => void;
+  }).galaxyInstance = galaxy;
+  
+  (window as { 
+    galaxyInstance?: Galaxy;
+    toggleSegmentums?: (show: boolean) => void;
+  }).toggleSegmentums = toggleSegmentums;
 
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
@@ -413,6 +453,9 @@ async function render(): Promise<void> {
       clearCurrentPlanet();
     }
   }
+
+  // Update segmentum visibility based on camera position
+  updateSegmentumVisibility();
 
   renderPipeline();
 

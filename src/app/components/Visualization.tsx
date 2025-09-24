@@ -3,8 +3,15 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Eye, X } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
+import { Label } from "./ui/label";
 
-export function Visualization() {
+interface VisualizationProps {
+   showSegmentums: boolean;
+   onToggleSegmentums: (show: boolean) => void;
+}
+
+export function Visualization({ showSegmentums, onToggleSegmentums }: VisualizationProps) {
    const [isOpen, setIsOpen] = useState(false);
 
    return (
@@ -44,7 +51,19 @@ export function Visualization() {
                   </div>
 
                   <div className="space-y-3">
-
+                     <div className="flex items-center space-x-2">
+                        <Checkbox
+                           id="show-segmentums"
+                           checked={showSegmentums}
+                           onCheckedChange={(checked) => onToggleSegmentums(checked as boolean)}
+                        />
+                        <Label
+                           htmlFor="show-segmentums"
+                           className="text-sm font-medium text-white cursor-pointer"
+                        >
+                           Mostrar Segmentos
+                        </Label>
+                     </div>
                   </div>
                </div>
             )}

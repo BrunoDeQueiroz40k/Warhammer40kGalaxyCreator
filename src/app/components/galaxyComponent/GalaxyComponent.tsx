@@ -12,7 +12,11 @@ declare global {
    }
 }
 
-export default function GalaxyComponent() {
+interface GalaxyComponentProps {
+   showSegmentums: boolean;
+}
+
+export default function GalaxyComponent({ showSegmentums }: GalaxyComponentProps) {
    const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
    const [planetScreenPosition, setPlanetScreenPosition] = useState<{ x: number; y: number } | null>(null);
    const [isPlanetVisible, setIsPlanetVisible] = useState<boolean>(false);
@@ -58,6 +62,18 @@ export default function GalaxyComponent() {
          window.removeEventListener('planetClick', handlePlanetClick as EventListener);
       };
    }, []);
+
+   // Control segmentum visibility
+   useEffect(() => {
+      const toggleSegmentums = (show: boolean) => {
+         const toggleFn = (window as { toggleSegmentums?: (show: boolean) => void }).toggleSegmentums;
+         if (toggleFn) {
+            toggleFn(show);
+         }
+      };
+
+      toggleSegmentums(showSegmentums);
+   }, [showSegmentums]);
 
    // Update planet position every frame when a planet is selected
    useEffect(() => {
