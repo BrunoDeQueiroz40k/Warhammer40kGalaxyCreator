@@ -280,7 +280,7 @@ function movePlanet(deltaX: number, deltaY: number, deltaZ: number) {
   console.log("Planet moved to:", newPosition);
 }
 
-// Function to clear current planet when it exits edit mode
+
 function clearCurrentPlanet() {
   currentPlanet = null;
 }
@@ -304,12 +304,11 @@ function initThree(): void {
   camera.up.set(0, 0, 1);
   camera.lookAt(0, 0, 0);
   
-  // Update global camera reference
   window.camera = camera;
 
   // map orbit
   orbit = new OrbitControls(camera, canvas);
-  orbit.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  orbit.enableDamping = true;
   orbit.dampingFactor = 0.05;
   orbit.screenSpacePanning = false;
   orbit.minDistance = 1;
@@ -318,22 +317,17 @@ function initThree(): void {
 
   initRenderPipeline();
 
-  // Create galaxy instance
   galaxy = new Galaxy(scene);
 
-  // Expose galaxy instance globally for external access
   (window as { galaxyInstance?: Galaxy }).galaxyInstance = galaxy;
 
-  // Initialize raycaster for planet clicking
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  // Add event listeners for planet editing
   setupPlanetEditing();
 }
 
 function initRenderPipeline(): void {
-  // Assign Renderer
   renderer = new THREE.WebGLRenderer({
     antialias: true,
     canvas,
@@ -341,19 +335,14 @@ function initRenderPipeline(): void {
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // three r179 uses outputColorSpace instead of outputEncoding
-  // @ts-expect-error: outputColorSpace is the correct property on modern three
-  renderer.outputColorSpace = THREE.SRGBColorSpace as unknown as number;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
   
-  // Update global renderer reference
   window.renderer = renderer;
 
-  // General-use rendering pass for chaining
   const renderScene = new RenderPass(scene, camera);
 
-  // Rendering pass for bloom
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     1.5,
@@ -364,18 +353,15 @@ function initRenderPipeline(): void {
   bloomPass.strength = BLOOM_PARAMS.bloomStrength;
   bloomPass.radius = BLOOM_PARAMS.bloomRadius;
 
-  // bloom composer
   bloomComposer = new EffectComposer(renderer);
   bloomComposer.renderToScreen = false;
   bloomComposer.addPass(renderScene);
   bloomComposer.addPass(bloomPass);
 
-  // overlay composer
   overlayComposer = new EffectComposer(renderer);
   overlayComposer.renderToScreen = false;
   overlayComposer.addPass(renderScene);
 
-  // Shader pass to combine base layer, bloom, and overlay layers
   const finalPass = new ShaderPass(
     new THREE.ShaderMaterial({
       uniforms: {
@@ -391,7 +377,6 @@ function initRenderPipeline(): void {
   );
   finalPass.needsSwap = true;
 
-  // base layer composer
   baseComposer = new EffectComposer(renderer);
   baseComposer.addPass(renderScene);
   baseComposer.addPass(finalPass);
@@ -411,14 +396,12 @@ function resizeRendererToDisplaySize(renderer: THREE.WebGLRenderer): boolean {
 async function render(): Promise<void> {
   orbit.update();
 
-  // fix buffer size
   if (resizeRendererToDisplaySize(renderer)) {
     const canvas = renderer.domElement;
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
   }
 
-  // fix aspect ratio
   const canvas = renderer.domElement;
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   camera.updateProjectionMatrix();
@@ -426,28 +409,23 @@ async function render(): Promise<void> {
   if (galaxy) {
     galaxy.updateScale(camera);
 
-    // Check if current planet is still in edit mode
     if (currentPlanet && !currentPlanet.isInEditMode) {
       clearCurrentPlanet();
     }
   }
 
-  // Run each pass of the render pipeline
   renderPipeline();
 
   requestAnimationFrame(render);
 }
 
 function renderPipeline(): void {
-  // Render bloom
   camera.layers.set(BLOOM_LAYER);
   bloomComposer.render();
 
-  // Render overlays
   camera.layers.set(OVERLAY_LAYER);
   overlayComposer.render();
 
-  // Render normal
   camera.layers.set(BASE_LAYER);
   baseComposer.render();
 }

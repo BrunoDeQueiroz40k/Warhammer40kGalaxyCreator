@@ -9,6 +9,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { useState, useEffect } from "react";
 import { planetTypes } from "./icons/icons";
 import { GiRingedPlanet } from "react-icons/gi";
@@ -17,6 +18,8 @@ import { PlanetIcon } from "@phosphor-icons/react";
 import { ArrowDownToLine, Plus } from "lucide-react";
 import { PlanetData, Planet } from "./galaxyComponent/objects/planet";
 import { SegmentumSelector } from "./SegmentumSelector";
+import { ImageUpload } from "./ImageUpload";
+import { Preview } from "./Preview";
 
 const planetColors = [
   { name: "Azul", text: "text-blue-500" },
@@ -38,6 +41,9 @@ export function AddButton() {
     faction: "",
     planetType: "",
     description: "",
+    population: 0,
+    status: "ativo",
+    image: "",
     position: { x: 0, y: 0, z: 0 },
   });
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -72,6 +78,9 @@ export function AddButton() {
         faction: "",
         planetType: "",
         description: "",
+        population: 0,
+        status: "ativo",
+        image: "",
         position: { x: 0, y: 0, z: 0 },
       });
       setSelectedColor("");
@@ -126,127 +135,184 @@ export function AddButton() {
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Dialog.Content className="bg-black/90 rounded-md border border-amber-500/30 p-6 w-full max-w-lg text-white max-h-[90vh] overflow-y-auto">
-              <Dialog.Title className="text-xl font-semibold mb-4">
-                Crie o seu planeta!
-              </Dialog.Title>
+            <div className="flex gap-6 w-full max-w-4xl items-center">
+              <Dialog.Content className="bg-black/90 rounded-md border border-amber-500/30 p-6 w-full max-w-lg text-white max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                <Dialog.Title className="text-xl font-semibold mb-4">
+                  Crie o seu planeta!
+                </Dialog.Title>
 
-              <Label>Nome:</Label>
-              <Input
-                type="text"
-                placeholder="Digite o nome do planeta"
-                value={planetData.name}
-                onChange={(e) =>
-                  setPlanetData({ ...planetData, name: e.target.value })
-                }
-              />
-              <Label>Facção:</Label>
-              <Select
-                onValueChange={(value) =>
-                  setPlanetData({ ...planetData, faction: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione a facção do planeta" />
-                </SelectTrigger>
-                <SelectContent className="">
-                  <SelectItem value="Imperium">Imperium</SelectItem>
-                  <SelectItem value="Necrons">Necrons</SelectItem>
-                  <SelectItem value="Caos">Caos</SelectItem>
-                  <SelectItem value="Orks">Orks</SelectItem>
-                  <SelectItem value="Xenos">Xenos</SelectItem>
-                  <SelectItem value="Tau">Tau</SelectItem>
-                  <SelectItem value="Aeldari">Aeldari</SelectItem>
-                </SelectContent>
-              </Select>
-              <Label>Tipo do planeta:</Label>
-              <Select
-                onValueChange={(value) =>
-                  setPlanetData({ ...planetData, planetType: value })
-                }
-              >
-                <SelectTrigger
-                  className="w-full"
-                  placeholderIcon={<PlanetIcon className="w-5 h-5" />}
+                <Label>Nome:</Label>
+                <Input
+                  type="text"
+                  placeholder="Digite o nome do planeta"
+                  value={planetData.name}
+                  onChange={(e) =>
+                    setPlanetData({ ...planetData, name: e.target.value })
+                  }
+                />
+                <Label>Facção:</Label>
+                <Select
+                  onValueChange={(value) =>
+                    setPlanetData({ ...planetData, faction: value })
+                  }
                 >
-                  <SelectValue placeholder="Selecione o tipo do planeta" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[250px]">
-                  {planetTypes.map((planetType) => (
-                    <SelectItem
-                      key={planetType.value}
-                      value={planetType.value}
-                      icon={<planetType.icon className="w-4 h-4" />}
-                    >
-                      {planetType.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {/* <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a facção do planeta" />
+                  </SelectTrigger>
+                  <SelectContent className="">
+                    <SelectItem value="Imperium">Imperium</SelectItem>
+                    <SelectItem value="Necrons">Necrons</SelectItem>
+                    <SelectItem value="Caos">Caos</SelectItem>
+                    <SelectItem value="Orks">Orks</SelectItem>
+                    <SelectItem value="Xenos">Xenos</SelectItem>
+                    <SelectItem value="Tau">Tau</SelectItem>
+                    <SelectItem value="Aeldari">Aeldari</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Label>Tipo do planeta:</Label>
+                <Select
+                  onValueChange={(value) =>
+                    setPlanetData({ ...planetData, planetType: value })
+                  }
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    placeholderIcon={<PlanetIcon className="w-5 h-5" />}
+                  >
+                    <SelectValue placeholder="Selecione o tipo do planeta" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[250px]">
+                    {planetTypes.map((planetType) => (
+                      <SelectItem
+                        key={planetType.value}
+                        value={planetType.value}
+                        icon={<planetType.icon className="w-4 h-4" />}
+                      >
+                        {planetType.value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
                   <p className="text-amber-400 text-sm font-medium mb-2">📍 Modo de Edição</p>
                   <p className="text-slate-300 text-xs">
                     Após criar o planeta, ele aparecerá na posição (0,0,0) com um indicador verde.
                     Clique e arraste para posicioná-lo onde desejar, depois use o botão &quot;Posicionar Planeta&quot; para confirmar.
                   </p>
                 </div> */}
-              <Label>Descrição:</Label>
-              <Textarea
-                placeholder="Descreva o planeta"
-                value={planetData.description}
-                onChange={(e) =>
-                  setPlanetData({
-                    ...planetData,
-                    description: e.target.value,
-                  })
-                }
-              />
-              <Label>Selecione a cor do planeta:</Label>
-              <div className="flex justify-between my-2">
-                {planetColors.map((color) => (
-                  <button
-                    key={color.name}
-                    type="button"
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`
+                <Label>Descrição:</Label>
+                <Textarea
+                  placeholder="Descreva o planeta"
+                  value={planetData.description}
+                  onChange={(e) =>
+                    setPlanetData({
+                      ...planetData,
+                      description: e.target.value,
+                    })
+                  }
+                />
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <Label>População:</Label>
+                    <Input
+                      type="number"
+                      placeholder="Digite a população do planeta"
+                      value={planetData.population || ""}
+                      onChange={(e) =>
+                        setPlanetData({
+                          ...planetData,
+                          population: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Label>Status do Planeta:</Label>
+                    <RadioGroup
+                      value={planetData.status || "ativo"}
+                      onValueChange={(value) =>
+                        setPlanetData({
+                          ...planetData,
+                          status: value as "ativo" | "destruido",
+                        })
+                      }
+                      className="flex flex-row gap-4 mt-3.5"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ativo" id="ativo" />
+                        <Label htmlFor="ativo" className="text-green-400">Ativo</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="destruido" id="destruido" />
+                        <Label htmlFor="destruido" className="text-red-400">Destruído</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
+                <Label>Selecione a cor do planeta:</Label>
+                <div className="flex justify-between my-2">
+                  {planetColors.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      onClick={() => setSelectedColor(color.name)}
+                      className={`
                         py-5 px-3 rounded-md border text-amber-400 border-amber-500/30 transition-all duration-100 hover:bg-amber-500/15 cursor-pointer
-                        ${
-                          selectedColor === color.name
-                            ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
-                            : "hover:bg-amber-500/20"
+                        ${selectedColor === color.name
+                          ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
+                          : "hover:bg-amber-500/20"
                         }
                         ${color.text}
                       `}
-                    title={color.name}
+                      title={color.name}
+                    >
+                      <div>
+                        <GiRingedPlanet className="w-12 h-12" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <Label>Selecione o Segmentum:</Label>
+                <SegmentumSelector
+                  selectedSegmentum={selectedSegmentum}
+                  onSegmentumSelect={setSelectedSegmentum}
+                />
+
+                <ImageUpload
+                  value={planetData.image}
+                  onChange={(imageData) =>
+                    setPlanetData({
+                      ...planetData,
+                      image: imageData || undefined,
+                    })
+                  }
+                  label="Imagem do Planeta"
+                />
+
+                <div className="flex gap-3 justify-end mt-4">
+                  <Dialog.Close asChild>
+                    <Button variant="cancel" className="px-4 py-2">
+                      Cancelar
+                    </Button>
+                  </Dialog.Close>
+                  <Button
+                    variant="accept"
+                    className="px-4 py-2"
+                    onClick={handleCreatePlanet}
                   >
-                    <div>
-                      <GiRingedPlanet className="w-12 h-12" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <Label>Selecione o Segmentum:</Label>
-              <SegmentumSelector
-                selectedSegmentum={selectedSegmentum}
-                onSegmentumSelect={setSelectedSegmentum}
-              />
-
-              <div className="flex gap-3 justify-end mt-4">
-                <Dialog.Close asChild>
-                  <Button variant="cancel" className="px-4 py-2">
-                    Cancelar
+                    Criar Planeta
                   </Button>
-                </Dialog.Close>
-                <Button
-                  variant="accept"
-                  className="px-4 py-2"
-                  onClick={handleCreatePlanet}
-                >
-                  Criar Planeta
-                </Button>
-              </div>
-            </Dialog.Content>
+                </div>
+              </Dialog.Content>
+
+              {/* Preview do Planeta */}
+              <Preview
+                planetData={planetData}
+                selectedColor={selectedColor}
+                selectedSegmentum={selectedSegmentum}
+              />
+            </div>
           </Dialog.Overlay>
         </Dialog.Portal>
       </Dialog.Root>

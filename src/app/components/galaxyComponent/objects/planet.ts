@@ -32,6 +32,9 @@ export interface PlanetData {
   description: string;
   color?: string;
   segmentum?: string;
+  population?: number;
+  status?: "ativo" | "destruido";
+  image?: string;
   position: {
     x: number;
     y: number;

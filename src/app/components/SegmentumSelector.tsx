@@ -53,7 +53,7 @@ const segmentums: Segmentum[] = [
 // Tamanhos de texto específicos para cada segmento
 const segmentumTextSizes: Record<string, number> = {
   solar: 40,
-  pacificus: 40,
+  pacificus: 35,
   tempestus: 60,
   obscurus: 65,
   ultima: 75,
@@ -151,7 +151,7 @@ export function SegmentumSelector({
 
       {/* Selection indicator */}
       {selectedSegmentum && (
-        <div className="absolute top-2 right-2 bg-amber-500/90 text-black px-2 py-1 rounded text-xs font-semibold">
+        <div className="absolute top-2 right-2 bg-amber-500/20 border border-amber-500/40 text-white px-2 py-1 rounded text-xs font-semibold">
           {segmentums.find((s) => s.id === selectedSegmentum)?.name}
         </div>
       )}
