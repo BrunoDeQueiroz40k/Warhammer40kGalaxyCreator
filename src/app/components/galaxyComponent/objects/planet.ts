@@ -35,6 +35,7 @@ export interface PlanetData {
   population?: number;
   status?: "ativo" | "destruido";
   image?: string;
+  vrchatUrl?: string;
   position: {
     x: number;
     y: number;

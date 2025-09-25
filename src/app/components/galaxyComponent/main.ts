@@ -361,6 +361,15 @@ function initThree(): void {
     toggleSegmentums?: (show: boolean) => void;
   }).toggleSegmentums = toggleSegmentums;
 
+  // Expor funções simples de controle
+  (window as { setPosicaoSegmentums?: (x: number, y: number, z: number) => void }).setPosicaoSegmentums = (x: number, y: number, z: number) => {
+    Segmentum.setPosicao(x, y, z);
+  };
+
+  (window as { setRotacaoSegmentums?: (angulo: number) => void }).setRotacaoSegmentums = (angulo: number) => {
+    Segmentum.setRotacao(angulo);
+  };
+
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 

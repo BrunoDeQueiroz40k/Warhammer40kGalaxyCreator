@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { X, PencilLine } from "lucide-react";
+import { X, PencilLine, ExternalLink } from "lucide-react";
 import { Badge, badgeVariants } from "./ui/badge";
 import { VariantProps } from "class-variance-authority";
 import { PlanetData } from "./galaxyComponent/objects/planet";
+import { LinkPreview } from "./LinkPreview";
+import Image from "next/image";
 
 interface PlanetCardProps {
   planet: PlanetData;
@@ -13,11 +15,7 @@ interface PlanetCardProps {
   onDelete?: () => void;
 }
 
-export function PlanetCard({
-  planet,
-  position,
-  onClose,
-}: PlanetCardProps) {
+export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   const handleClose = () => {
@@ -47,8 +45,6 @@ export function PlanetCard({
       return value.toString();
     }
   };
-
-
 
   // Função para mapear facções para variantes do badgeF
   const getFactionVariant = (
@@ -88,23 +84,25 @@ export function PlanetCard({
     >
       <div
         className={`
-        bg-black/95 border border-amber-500/30 rounded-lg shadow-2xl w-96 max-h-[90vh] overflow-y-auto overflow-x-hidden
+        bg-black/95 border border-amber-500/30 rounded-lg shadow-2xl w-96 min-h-[400px] max-h-[85vh] overflow-y-auto overflow-x-hidden
         transform transition-all duration-300
         ${isVisible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}
       `}
       >
         {/* Header com banner */}
         <div className="relative">
-          <div 
+          <div
             className="h-36 bg-gradient-to-br from-amber-500/20 via-amber-600/30 to-amber-700/20 rounded-t-lg flex items-end p-6 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: planet.image 
+              backgroundImage: planet.image
                 ? `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${planet.image})`
-                : undefined
+                : undefined,
             }}
           >
             <div>
-              <h1 className="text-3xl font-bold text-white drop-shadow-lg">{planet.name}</h1>
+              <h1 className="text-3xl font-bold text-white drop-shadow-lg">
+                {planet.name}
+              </h1>
               <h2 className="text-[15px] font-semibold text-amber-400 drop-shadow-lg">
                 {`Segmentum ${planet.segmentum || "Solar"}`}
               </h2>
@@ -148,8 +146,13 @@ export function PlanetCard({
               </div>
               <div className="border border-amber-500/30 rounded-md p-4 px-6 space-y-1 w-full">
                 <p className="text-slate-400 font-bold text-xs">STATUS</p>
-                <p className={`font-bold ${planet.status === "destruido" ? "text-red-500" : "text-green-500"
-                  }`}>
+                <p
+                  className={`font-bold ${
+                    planet.status === "destruido"
+                      ? "text-red-500"
+                      : "text-green-500"
+                  }`}
+                >
                   {planet.status === "destruido" ? "Destruído" : "Ativo"}
                 </p>
               </div>
@@ -161,10 +164,49 @@ export function PlanetCard({
             <p className="text-slate-400 font-bold text-xs">
               RELATÓRIO IMPERIAL
             </p>
-            <p className="text-slate-100">
+            <p className="text-slate-100 text-xs">
               {planet.description || "Nenhum relatório disponível ou atribuído"}
             </p>
           </div>
+
+          {/* {planet.image && (
+            <div className="border border-amber-500/30 rounded-md overflow-hidden">
+              <div className="relative group">
+                <Image
+                  width={192}
+                  height={144}
+                  src={planet.image}
+                  alt={`Preview de ${planet.name}`}
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <ExternalLink className="w-8 h-8 text-white" />
+                </div>
+              </div>
+            </div>
+          )} */}
+
+          {/* Link VRChat - Estilo Notion */}
+          {planet.vrchatUrl ? (
+            <LinkPreview url={planet.vrchatUrl} />
+          ) : (
+            <div className="border border-amber-500/20 rounded-lg p-4 bg-amber-500/5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <ExternalLink className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-amber-400 font-medium text-sm mb-1">
+                    Link VRChat
+                  </h4>
+                  <p className="text-slate-400 text-xs">
+                    Nenhum link de mapa VRChat foi especificado para este
+                    planeta
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-black h-8 w-28 [clip-path:polygon(50%_100%,0_0,100%_0)] absolute left-1/2 -bottom-7 -translate-x-1/2"></div>

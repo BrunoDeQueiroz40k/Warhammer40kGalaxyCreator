@@ -240,15 +240,31 @@ export function AddButton() {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="ativo" id="ativo" />
-                        <Label htmlFor="ativo" className="text-green-400">Ativo</Label>
+                        <Label htmlFor="ativo" className="text-green-400">
+                          Ativo
+                        </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="destruido" id="destruido" />
-                        <Label htmlFor="destruido" className="text-red-400">Destruído</Label>
+                        <Label htmlFor="destruido" className="text-red-400">
+                          Destruído
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
                 </div>
+                <Label>Link do Mapa VRChat:</Label>
+                <Input
+                  type="url"
+                  placeholder="https://vrchat.com/home/world/wrld_..."
+                  value={planetData.vrchatUrl || ""}
+                  onChange={(e) =>
+                    setPlanetData({
+                      ...planetData,
+                      vrchatUrl: e.target.value,
+                    })
+                  }
+                />
                 <Label>Selecione a cor do planeta:</Label>
                 <div className="flex justify-between my-2">
                   {planetColors.map((color) => (
@@ -258,9 +274,10 @@ export function AddButton() {
                       onClick={() => setSelectedColor(color.name)}
                       className={`
                         py-5 px-3 rounded-md border text-amber-400 border-amber-500/30 transition-all duration-100 hover:bg-amber-500/15 cursor-pointer
-                        ${selectedColor === color.name
-                          ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
-                          : "hover:bg-amber-500/20"
+                        ${
+                          selectedColor === color.name
+                            ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
+                            : "hover:bg-amber-500/20"
                         }
                         ${color.text}
                       `}

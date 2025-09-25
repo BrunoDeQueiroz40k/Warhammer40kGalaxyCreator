@@ -57,6 +57,14 @@ export class Segmentum {
   public data: SegmentumData;
   private isVisible: boolean = false;
 
+  fatorEscala = 1.5;
+  largura = 800 * this.fatorEscala;
+  altura = 600 * this.fatorEscala;
+
+  // Controles universais simples
+  private static offsetPosicao = new THREE.Vector3(-20, -50, 0);
+  private static offsetRotacao = new THREE.Euler(0, 0, 0);
+
   constructor(data: SegmentumData, scene: THREE.Scene) {
     this.data = data;
     this.obj = new THREE.Group();
@@ -88,21 +96,18 @@ export class Segmentum {
     svg.appendChild(group);
 
     // Set SVG size
-    svg.style.width = "800px"; // Smaller size
-    svg.style.height = "600px"; // Smaller size
+    svg.style.width = `${this.largura}px`; // Smaller size
+    svg.style.height = `${this.altura}px`; // Smaller size
 
-    // Create a container div
     const container = document.createElement("div");
     container.style.position = "absolute";
-    container.style.width = "800px";
-    container.style.height = "600px";
+    container.style.width = `${this.largura}px`;
+    container.style.height = `${this.altura}px`;
     container.style.pointerEvents = "none";
     container.appendChild(svg);
 
-    // Add to DOM temporarily to render
     document.body.appendChild(container);
 
-    // Convert SVG to texture
     const svgData = new XMLSerializer().serializeToString(svg);
     const svgBlob = new Blob([svgData], {
       type: "image/svg+xml;charset=utf-8",
@@ -111,23 +116,21 @@ export class Segmentum {
 
     const img = new Image();
     img.onload = () => {
-      // Create canvas to convert image to texture
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
       if (!context) return;
 
-      canvas.width = 800; ////////
-      canvas.height = 600; ////////
+      canvas.width = this.largura;
+      canvas.height = this.altura;
 
       // Draw the SVG image
-      context.drawImage(img, 0, 0, 800, 600); ////////
+      context.drawImage(img, 0, 0, this.largura, this.altura);
 
-      // Create texture
       const texture = new THREE.CanvasTexture(canvas);
       texture.needsUpdate = true;
 
       // Create plane geometry
-      const geometry = new THREE.PlaneGeometry(800, 600); ////////
+      const geometry = new THREE.PlaneGeometry(this.largura, this.altura);
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -139,9 +142,8 @@ export class Segmentum {
       mesh.lookAt(0, 0, 1);
 
       this.obj.add(mesh);
-      this.createTextLabel();
+      // this.createTextLabel();
 
-      // Clean up
       document.body.removeChild(container);
       URL.revokeObjectURL(url);
     };
@@ -149,45 +151,43 @@ export class Segmentum {
     img.src = url;
   }
 
-  private createTextLabel() {
-    // Create text geometry for the segmentum name
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (!context) return;
+  // private createTextLabel() {
+  //   const canvas = document.createElement("canvas");
+  //   const context = canvas.getContext("2d");
+  //   if (!context) return;
 
-    canvas.width = 512;
-    canvas.height = 128;
+  //   canvas.width = 512;
+  //   canvas.height = 128;
 
-    context.fillStyle = "white";
-    context.font = "bold 32px Arial";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
+  //   context.fillStyle = "white";
+  //   context.font = "bold 32px Arial";
+  //   context.textAlign = "center";
+  //   context.textBaseline = "middle";
 
-    // Split name into two lines
-    const nameParts = this.data.name.split(" ");
-    const firstLine = nameParts[0];
-    const secondLine = nameParts.slice(1).join(" ");
+  //   const nameParts = this.data.name.split(" ");
+  //   const firstLine = nameParts[0];
+  //   const secondLine = nameParts.slice(1).join(" ");
 
-    context.fillText(firstLine, 256, 40);
-    context.fillText(secondLine, 256, 88);
+  //   context.fillText(firstLine, 256, 40);
+  //   context.fillText(secondLine, 256, 88);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    const material = new THREE.SpriteMaterial({
-      map: texture,
-      transparent: true,
-      opacity: 0.9,
-    });
+  //   const texture = new THREE.CanvasTexture(canvas);
+  //   const material = new THREE.SpriteMaterial({
+  //     map: texture,
+  //     transparent: true,
+  //     opacity: 0.9,
+  //   });
 
-    const sprite = new THREE.Sprite(material);
-    sprite.scale.set(200, 50, 1);
-    sprite.position.set(
-      (this.data.textPosition.x - 700) * 0.1,
-      (this.data.textPosition.y - 580) * 0.1,
-      10
-    );
+  //   const sprite = new THREE.Sprite(material);
+  //   sprite.scale.set(200, 50, 1);
+  //   sprite.position.set(
+  //     (this.data.textPosition.x - 700) * 0.1,
+  //     (this.data.textPosition.y - 580) * 0.1,
+  //     10
+  //   );
 
-    this.obj.add(sprite);
-  }
+  //   this.obj.add(sprite);
+  // }
 
   public toggleVisibility(show: boolean) {
     this.isVisible = show;
@@ -205,7 +205,20 @@ export class Segmentum {
       pos.z >= -5000 &&
       pos.z <= 5000;
 
-    // Show only when camera is in range and visibility is enabled
     this.obj.visible = this.isVisible && isInRange;
+
+    // Aplicar controles universais
+    this.obj.position.copy(Segmentum.offsetPosicao);
+    this.obj.rotation.copy(Segmentum.offsetRotacao);
+  }
+
+  // Funções simples para controlar todos os segmentos
+  public static setPosicao(x: number, y: number, z: number) {
+    Segmentum.offsetPosicao.set(x, y, z);
+  }
+
+  public static setRotacao(angulo: number) {
+    // Rotação apenas no eixo Z (como ponteiro de relógio)
+    Segmentum.offsetRotacao.set(0, 0, angulo, "XYZ");
   }
 }
