@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { X, PencilLine, ExternalLink } from "lucide-react";
+import { LinkPreview } from "./LinkPreview";
 import { Badge, badgeVariants } from "./ui/badge";
 import { VariantProps } from "class-variance-authority";
+import { X, PencilLine, ExternalLink } from "lucide-react";
 import { PlanetData } from "./galaxyComponent/objects/planet";
-import { LinkPreview } from "./LinkPreview";
-import Image from "next/image";
 
 interface PlanetCardProps {
   planet: PlanetData;
@@ -20,7 +19,7 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Delay para animação
+    setTimeout(onClose, 300);
   };
 
   // Função para formatar população

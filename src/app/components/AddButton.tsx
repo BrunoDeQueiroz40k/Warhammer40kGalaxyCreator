@@ -20,6 +20,7 @@ import { PlanetData, Planet } from "./galaxyComponent/objects/planet";
 import { SegmentumSelector } from "./SegmentumSelector";
 import { ImageUpload } from "./ImageUpload";
 import { Preview } from "./Preview";
+import { GalaxyEvents } from "../../lib/galaxyEvents";
 
 const planetColors = [
   { name: "Azul", text: "text-blue-500" },
@@ -71,6 +72,9 @@ export function AddButton() {
         "Planeta criado em modo de edição:",
         planetDataWithDefaultPosition
       );
+
+      // Disparar evento para salvar imediatamente no cache
+      GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
 
       // Reset form
       setPlanetData({
@@ -236,7 +240,7 @@ export function AddButton() {
                           status: value as "ativo" | "destruido",
                         })
                       }
-                      className="flex flex-row gap-4 mt-3.5"
+                      className="flex flex-row gap-4 mt-4"
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="ativo" id="ativo" />

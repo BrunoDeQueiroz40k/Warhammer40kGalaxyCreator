@@ -6,6 +6,7 @@ declare global {
   interface Window {
     camera?: THREE.PerspectiveCamera;
     renderer?: THREE.WebGLRenderer;
+    orbit?: OrbitControls;
   }
 }
 
@@ -53,7 +54,6 @@ let segmentumObjects: Segmentum[] = [];
 let currentPlanet: Planet | null = null;
 let planetMoveSpeed = 0.1; // Base movement speed
 
-
 // Planet click detection
 let raycaster: THREE.Raycaster;
 let mouse: THREE.Vector2;
@@ -92,7 +92,9 @@ function onCanvasClick(event: MouseEvent) {
   // Get all planets from galaxy
   const planets = galaxy.getPlanets();
   console.log("Total planets:", planets.length);
-  const planetObjects = planets.map(planet => planet.obj).filter(obj => obj !== null);
+  const planetObjects = planets
+    .map((planet) => planet.obj)
+    .filter((obj) => obj !== null);
   console.log("Planet objects:", planetObjects.length);
 
   // Check for intersections with different approaches
@@ -110,7 +112,9 @@ function onCanvasClick(event: MouseEvent) {
 
   // Combine and sort intersections by renderOrder (highest first) to prioritize planets
   const combinedIntersects = [...allIntersects, ...bloomIntersects];
-  combinedIntersects.sort((a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0));
+  combinedIntersects.sort(
+    (a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0)
+  );
 
   // Reset raycaster to default layer
   raycaster.layers.set(0);
@@ -123,7 +127,7 @@ function onCanvasClick(event: MouseEvent) {
       point: intersect.point.toArray(),
       uuid: intersect.object.uuid,
       renderOrder: intersect.object.renderOrder,
-      layers: intersect.object.layers.mask
+      layers: intersect.object.layers.mask,
     });
   });
 
@@ -133,7 +137,10 @@ function onCanvasClick(event: MouseEvent) {
 
   // Try with recursive search
   const recursiveIntersects = raycaster.intersectObjects(planetObjects, true);
-  console.log("Recursive planet intersections found:", recursiveIntersects.length);
+  console.log(
+    "Recursive planet intersections found:",
+    recursiveIntersects.length
+  );
 
   // Debug: Log planet positions and sizes
   planets.forEach((planet, index) => {
@@ -143,7 +150,7 @@ function onCanvasClick(event: MouseEvent) {
         scale: planet.obj.scale.toArray(),
         visible: planet.obj.visible,
         renderOrder: planet.obj.renderOrder,
-        layers: planet.obj.layers.mask
+        layers: planet.obj.layers.mask,
       });
     }
   });
@@ -152,10 +159,10 @@ function onCanvasClick(event: MouseEvent) {
   console.log("Raycaster:", {
     ray: {
       origin: raycaster.ray.origin.toArray(),
-      direction: raycaster.ray.direction.toArray()
+      direction: raycaster.ray.direction.toArray(),
     },
     near: raycaster.near,
-    far: raycaster.far
+    far: raycaster.far,
   });
 
   // Debug: Log camera position
@@ -167,7 +174,7 @@ function onCanvasClick(event: MouseEvent) {
   // First try direct planet intersections
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
-    clickedPlanet = planets.find(planet => planet.obj === clickedObject);
+    clickedPlanet = planets.find((planet) => planet.obj === clickedObject);
   }
 
   // If no direct planet intersection, check all intersections for planets
@@ -177,18 +184,20 @@ function onCanvasClick(event: MouseEvent) {
     console.log("Checking first intersection (highest renderOrder):", {
       renderOrder: firstIntersect.object.renderOrder,
       uuid: firstIntersect.object.uuid,
-      isPlanet: (firstIntersect.object as PlanetSprite).isPlanet
+      isPlanet: (firstIntersect.object as PlanetSprite).isPlanet,
     });
 
     // Check if the first intersected object is a planet using custom property
     if ((firstIntersect.object as PlanetSprite).isPlanet) {
       const planetData = (firstIntersect.object as PlanetSprite).planetData;
-      clickedPlanet = planets.find(planet => planet.data === planetData);
+      clickedPlanet = planets.find((planet) => planet.data === planetData);
       console.log("Found planet using isPlanet property:", planetData);
       console.log("Intersected object UUID:", firstIntersect.object.uuid);
     } else {
       // Fallback: check by UUID
-      const planet = planets.find(planet => planet.obj && planet.obj.uuid === firstIntersect.object.uuid);
+      const planet = planets.find(
+        (planet) => planet.obj && planet.obj.uuid === firstIntersect.object.uuid
+      );
       if (planet && planet.obj) {
         clickedPlanet = planet;
         console.log("Found planet in all intersections:", planet.data);
@@ -205,8 +214,8 @@ function onCanvasClick(event: MouseEvent) {
 
     console.log("Planet clicked:", clickedPlanet.data);
     // Dispatch custom event with planet data
-    const planetClickEvent = new CustomEvent('planetClick', {
-      detail: { planet: clickedPlanet }
+    const planetClickEvent = new CustomEvent("planetClick", {
+      detail: { planet: clickedPlanet },
     });
     window.dispatchEvent(planetClickEvent);
   } else {
@@ -260,6 +269,20 @@ function onKeyDown(event: KeyboardEvent) {
       planetMoveSpeed = Math.max(planetMoveSpeed * 0.7, 0.1);
       console.log("Planet speed decreased to:", planetMoveSpeed);
       break;
+    case "enter": // Confirm planet position
+      if (galaxy && currentPlanet) {
+        galaxy.confirmPlanetPosition(currentPlanet);
+        clearCurrentPlanet();
+        console.log("Planet position confirmed");
+      }
+      break;
+    case "escape": // Cancel planet editing
+      if (galaxy && currentPlanet) {
+        galaxy.removePlanet(currentPlanet);
+        clearCurrentPlanet();
+        console.log("Planet editing cancelled");
+      }
+      break;
   }
 }
 
@@ -268,7 +291,6 @@ function onKeyUp(event: KeyboardEvent) {
 
   // Stop movement when movement keys are released
   if (["w", "a", "s", "d", "q", "e"].includes(key)) {
-
   }
 }
 
@@ -282,33 +304,32 @@ function movePlanet(deltaX: number, deltaY: number, deltaZ: number) {
   console.log("Planet moved to:", newPosition);
 }
 
-
 function clearCurrentPlanet() {
   currentPlanet = null;
 }
 
 function createSegmentums() {
   // Clear existing segmentums
-  segmentumObjects.forEach(segmentum => {
+  segmentumObjects.forEach((segmentum) => {
     scene.remove(segmentum.obj);
   });
   segmentumObjects = [];
 
   // Create new segmentums
-  segmentums.forEach(segmentumData => {
+  segmentums.forEach((segmentumData) => {
     const segmentum = new Segmentum(segmentumData, scene);
     segmentumObjects.push(segmentum);
   });
 }
 
 function toggleSegmentums(show: boolean) {
-  segmentumObjects.forEach(segmentum => {
+  segmentumObjects.forEach((segmentum) => {
     segmentum.toggleVisibility(show);
   });
 }
 
 function updateSegmentumVisibility() {
-  segmentumObjects.forEach(segmentum => {
+  segmentumObjects.forEach((segmentum) => {
     segmentum.updateVisibility(camera);
   });
 }
@@ -331,11 +352,12 @@ function initThree(): void {
   camera.position.set(0, 500, 500);
   camera.up.set(0, 0, 1);
   camera.lookAt(0, 0, 0);
-  
+
   window.camera = camera;
 
   // map orbit
   orbit = new OrbitControls(camera, canvas);
+  window.orbit = orbit;
   orbit.enableDamping = true;
   orbit.dampingFactor = 0.05;
   orbit.screenSpacePanning = false;
@@ -351,22 +373,32 @@ function initThree(): void {
   createSegmentums();
 
   // Expose galaxy instance and segmentum functions globally
-  (window as { 
-    galaxyInstance?: Galaxy;
-    toggleSegmentums?: (show: boolean) => void;
-  }).galaxyInstance = galaxy;
-  
-  (window as { 
-    galaxyInstance?: Galaxy;
-    toggleSegmentums?: (show: boolean) => void;
-  }).toggleSegmentums = toggleSegmentums;
+  (
+    window as {
+      galaxyInstance?: Galaxy;
+      toggleSegmentums?: (show: boolean) => void;
+    }
+  ).galaxyInstance = galaxy;
+
+  (
+    window as {
+      galaxyInstance?: Galaxy;
+      toggleSegmentums?: (show: boolean) => void;
+    }
+  ).toggleSegmentums = toggleSegmentums;
 
   // Expor funções simples de controle
-  (window as { setPosicaoSegmentums?: (x: number, y: number, z: number) => void }).setPosicaoSegmentums = (x: number, y: number, z: number) => {
+  (
+    window as {
+      setPosicaoSegmentums?: (x: number, y: number, z: number) => void;
+    }
+  ).setPosicaoSegmentums = (x: number, y: number, z: number) => {
     Segmentum.setPosicao(x, y, z);
   };
 
-  (window as { setRotacaoSegmentums?: (angulo: number) => void }).setRotacaoSegmentums = (angulo: number) => {
+  (
+    window as { setRotacaoSegmentums?: (angulo: number) => void }
+  ).setRotacaoSegmentums = (angulo: number) => {
     Segmentum.setRotacao(angulo);
   };
 
@@ -387,7 +419,7 @@ function initRenderPipeline(): void {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
-  
+
   window.renderer = renderer;
 
   const renderScene = new RenderPass(scene, camera);

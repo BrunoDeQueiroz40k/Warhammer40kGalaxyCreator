@@ -3,19 +3,15 @@ import { BLOOM_LAYER, STAR_MAX, STAR_MIN } from "../config/renderConfig";
 import { starTypes } from "../config/starDistributions";
 import { clamp } from "../utils";
 
-// Interface for sprite with custom planet properties
 interface PlanetSprite extends THREE.Sprite {
   isPlanet?: boolean;
   planetData?: PlanetData;
 }
 
-// No interface needed for EditIndicator anymore
-
 const texture = new THREE.TextureLoader().load(
   "/assets/GalaxyMap/sprite120.png"
 );
 
-// Color mapping for planet colors (strong colors with bloom effect)
 const colorMap: { [key: string]: number } = {
   Azul: 0x0080ff, // strong blue (bright enough for bloom)
   Verde: 0x00ff80, // strong green (bright enough for bloom)
@@ -98,7 +94,7 @@ export class Planet {
       color: planetColor,
       transparent: true,
       opacity: 1.0,
-      blending: THREE.AdditiveBlending, // This helps with bloom effect
+      blending: THREE.AdditiveBlending,
     });
 
     const sprite = new THREE.Sprite(planetMaterial);
@@ -106,12 +102,9 @@ export class Planet {
 
     sprite.scale.multiplyScalar(starTypes.size[this.starType]);
     sprite.position.copy(this.position);
+    sprite.renderOrder = 1000;
+    sprite.material.depthTest = false;
 
-    // Make planet more visible and easier to interact with
-    sprite.renderOrder = 1000; // Render on top
-    sprite.material.depthTest = false; // Always render on top
-
-    // Add a custom property to identify this as a planet
     (sprite as PlanetSprite).isPlanet = true;
     (sprite as PlanetSprite).planetData = this.data;
 
@@ -146,7 +139,6 @@ export class Planet {
   }
 
   private createEditIndicator(scene: THREE.Scene) {
-    // Create a directional arrow indicator using arrow.png image
     const arrowTexture = new THREE.TextureLoader().load(
       "/assets/GalaxyMap/arrow.png"
     );
@@ -183,7 +175,6 @@ export class Planet {
     if (this.obj && this.obj.material instanceof THREE.SpriteMaterial) {
       const planetColor = colorMap[newColor] || 0xffffff;
       this.obj.material.color.setHex(planetColor);
-      // Ensure bloom properties are maintained
       this.obj.material.transparent = true;
       this.obj.material.opacity = 1.0;
       this.obj.material.blending = THREE.AdditiveBlending;
