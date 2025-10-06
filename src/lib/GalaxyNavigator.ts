@@ -16,9 +16,6 @@ interface Planet {
 }
 
 export class GalaxyNavigator {
-  /**
-   * Navega para um planeta com animação suave
-   */
   static navigateToPlanet(planet: Planet): void {
     if (typeof window === "undefined") return;
 

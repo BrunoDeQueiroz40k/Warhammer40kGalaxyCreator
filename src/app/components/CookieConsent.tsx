@@ -31,7 +31,7 @@ export function CookieConsent() {
   if (!isMounted || !showConsent) return null;
 
   return (
-    <div className="fixed bottom-3.5 left-3.5 z-50 bg-gray-900 border border-amber-500/30 rounded-lg p-4 shadow-lg">
+    <div className="bg-gray-900 border border-amber-500/30 rounded-lg p-4 shadow-lg">
       <div className="flex items-start">
         <div>
           <h3 className="text-lg font-semibold text-white mb-2">

@@ -10,21 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primaris:
-          "text-gray-300 text-amber-400 bg-amber-500/10 border border-amber-500/30 transition-all duration-100 hover:bg-amber-500/20",
+          "text-amber-400 bg-amber-500/10 border border-amber-500/30 transition-all duration-100 hover:bg-amber-500/20",
         secundus:
           "border border-amber-500 text-amber-400 hover:bg-amber-500/10 bg-amber-500/15",
         accept:
-          "text-gray-300 text-green-400 bg-green-500/10 border border-green-500/30 transition-all duration-100 hover:bg-green-500/20",
+          "text-green-400 bg-green-500/10 border border-green-500/30 transition-all duration-100 hover:bg-green-500/20",
         cancel:
-          "text-gray-300 text-red-400 bg-red-500/10 border border-red-500/30 transition-all duration-100 hover:bg-red-500/20",
+          "text-red-400 bg-red-500/10 border border-red-500/30 transition-all duration-100 hover:bg-red-500/20",
         white:
-          "text-gray-300 text-white bg-white/10 border border-white/30 transition-all duration-100 hover:bg-white/20",
-        blue: "text-gray-300 text-blue-400 bg-blue-400/15 border border-blue-500/30 transition-all duration-100 hover:bg-blue-500/20",
+          "text-white bg-white/10 border border-white/30 transition-all duration-100 hover:bg-white/20",
+        blue: "text-blue-400 bg-blue-400/15 border border-blue-500/30 transition-all duration-100 hover:bg-blue-500/20",
         ghost:
-          "text-gray-300 text-amber-400 transition-all duration-100 hover:bg-amber-500/20",
+          "text-amber-400 transition-all duration-100 hover:bg-amber-500/20",
+        gray: "bg-gray-400/15 border border-gray-500/30 transition-all duration-100 hover:bg-gray-500/20",
       },
       size: {
-        default: "px-0 py-0",
+        default: "px-0 py-1",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",

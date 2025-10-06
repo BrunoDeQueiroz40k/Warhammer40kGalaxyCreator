@@ -33,16 +33,16 @@ export function CacheStatus() {
   if (!isMounted || !cacheInfo.hasConsent) return null;
 
   return (
-    <div className="fixed bottom-18 right-3.5 z-40">
+    <div>
       <Button
         onClick={() => setIsVisible(!isVisible)}
-        className="p-2 bg-gray-900/80 border-amber-500/30 text-amber-500 hover:bg-gray-800"
+        className={`p-2 border-amber-500/30 text-amber-500 hover:bg-gray-800 ${!isVisible ? "bg-gray-900/80" : "bg-gray-700/80"}`}
       >
         <Cookie className="!w-6 !h-6" />
       </Button>
 
       {isVisible && (
-        <div className="absolute bottom-12 right-0 bg-gray-900 border border-amber-500/30 rounded-lg p-3 w-64 shadow-lg">
+        <div className="fixed bottom-30 right-3.5 z-50 bg-gray-900 border border-amber-500/30 rounded-lg p-3 w-64 shadow-lg">
           <div className="text-xs text-gray-300 space-y-1">
             <div className="font-semibold text-amber-500 mb-2">
               Status do Cache

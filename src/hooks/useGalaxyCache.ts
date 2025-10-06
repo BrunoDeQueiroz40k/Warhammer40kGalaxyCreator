@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { GalaxyCache } from "../lib/galaxyCache";
 import { GalaxyEvents } from "../lib/galaxyEvents";
 
@@ -21,7 +21,10 @@ interface Planet {
 }
 
 export function useGalaxyCache() {
-  // Salvar galáxia no cache
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<string | null>(null);
+
+  // Salvar galáxia no cache com debounce e otimização
   const saveGalaxy = useCallback(() => {
     if (typeof window === "undefined") return;
 
@@ -65,12 +68,27 @@ export function useGalaxyCache() {
           },
         }));
 
+        // Verificar se os dados mudaram para evitar saves desnecessários
+        const currentData = JSON.stringify(exportablePlanets);
+        if (lastSavedDataRef.current === currentData) {
+          return; // Dados não mudaram, não salvar
+        }
+
         GalaxyCache.saveGalaxy(exportablePlanets);
+        lastSavedDataRef.current = currentData;
       }
     } catch (error) {
       console.error("Erro ao salvar galáxia no cache:", error);
     }
   }, []);
+
+  // Função de salvamento com debounce
+  const debouncedSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(saveGalaxy, 1000); // 1 segundo de debounce
+  }, [saveGalaxy]);
 
   // Carregar galáxia do cache
   const loadGalaxy = useCallback(() => {
@@ -114,22 +132,28 @@ export function useGalaxyCache() {
     return false;
   }, []);
 
-  // Configurar salvamento automático
+  // Configurar salvamento automático otimizado
   useEffect(() => {
     if (!GalaxyCache.hasConsent()) return;
+    
+    // Reduzir frequência de salvamento automático para 2 minutos
     const saveInterval = setInterval(() => {
       GalaxyCache.updateActivity();
-      saveGalaxy();
-    }, 30000);
+      debouncedSave(); // Usar debouncedSave em vez de saveGalaxy direto
+    }, 120000); // 2 minutos em vez de 30 segundos
 
     const handleBeforeUnload = () => {
+      // Limpar timeout pendente e salvar imediatamente
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       GalaxyCache.forceSave([]);
-      saveGalaxy();
+      saveGalaxy(); // Salvar imediatamente no beforeunload
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        saveGalaxy();
+        debouncedSave(); // Usar debouncedSave
       }
     };
 
@@ -138,10 +162,13 @@ export function useGalaxyCache() {
 
     return () => {
       clearInterval(saveInterval);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [saveGalaxy]);
+  }, [saveGalaxy, debouncedSave]);
 
   useEffect(() => {
     if (GalaxyCache.hasConsent()) {
@@ -153,29 +180,26 @@ export function useGalaxyCache() {
     }
   }, [loadGalaxy]);
 
-  // Escutar eventos de mudança na galáxia para salvar imediatamente
+  // Escutar eventos de mudança na galáxia para salvar com debounce
   useEffect(() => {
-    const handleGalaxyChange = () => {
-      // Pequeno delay para garantir que a galáxia foi atualizada
-      setTimeout(() => {
-        saveGalaxy();
-      }, 100);
-    };
-
     // Adicionar listeners para eventos de mudança
-    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_ADDED, handleGalaxyChange);
-    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_REMOVED, handleGalaxyChange);
-    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_UPDATED, handleGalaxyChange);
-    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.GALAXY_CLEARED, handleGalaxyChange);
+    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_ADDED, debouncedSave);
+    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_REMOVED, debouncedSave);
+    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.PLANET_UPDATED, debouncedSave);
+    GalaxyEvents.addEventListener(GalaxyEvents.EVENTS.GALAXY_CLEARED, debouncedSave);
 
     return () => {
+      // Limpar timeout pendente
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       // Remover listeners
-      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_ADDED, handleGalaxyChange);
-      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_REMOVED, handleGalaxyChange);
-      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_UPDATED, handleGalaxyChange);
-      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.GALAXY_CLEARED, handleGalaxyChange);
+      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_ADDED, debouncedSave);
+      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_REMOVED, debouncedSave);
+      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.PLANET_UPDATED, debouncedSave);
+      GalaxyEvents.removeEventListener(GalaxyEvents.EVENTS.GALAXY_CLEARED, debouncedSave);
     };
-  }, [saveGalaxy]);
+  }, [debouncedSave]);
 
   return {
     saveGalaxy,

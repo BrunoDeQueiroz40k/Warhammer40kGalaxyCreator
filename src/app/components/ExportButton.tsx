@@ -76,8 +76,10 @@ export function ExportButton() {
 
       // Exportar galáxia
       await GalaxyExporter.exportGalaxy(exportablePlanets);
-      
-      setResultMessage(`Galáxia exportada com sucesso! ${exportablePlanets.length} planetas exportados.`);
+
+      setResultMessage(
+        `Galáxia exportada com sucesso! ${exportablePlanets.length} planetas exportados.`
+      );
       setResultType("success");
       setShowResultDialog(true);
     } catch (error) {
@@ -90,7 +92,7 @@ export function ExportButton() {
 
   return (
     <>
-      <div className="fixed top-3.5 right-112 z-20">
+      <div>
         <TooltipProvider>
           <Tooltip delayDuration={0.5}>
             <TooltipTrigger asChild>
@@ -120,10 +122,12 @@ export function ExportButton() {
                   <XCircle className="h-6 w-6 text-red-500" />
                 )}
                 <Dialog.Title className="text-xl font-semibold">
-                  {resultType === "success" ? "Exportação Concluída" : "Erro na Exportação"}
+                  {resultType === "success"
+                    ? "Exportação Concluída"
+                    : "Erro na Exportação"}
                 </Dialog.Title>
               </div>
-              
+
               <div className="text-left mb-6">
                 <p>{resultMessage}</p>
               </div>

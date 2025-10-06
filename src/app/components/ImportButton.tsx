@@ -120,7 +120,7 @@ export function ImportButton() {
 
   return (
     <>
-      <div className="fixed top-3.5 right-100 z-20">
+      <div>
         <TooltipProvider>
           <Tooltip delayDuration={0.5}>
             <TooltipTrigger asChild>

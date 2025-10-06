@@ -252,7 +252,7 @@ export function SearchInput() {
   };
 
   return (
-    <div className="fixed top-3.5 right-3.5 z-20 text-lg" ref={searchRef}>
+    <div className="text-lg" ref={searchRef}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-400 w-4 h-4" />
         <Input
@@ -263,7 +263,7 @@ export function SearchInput() {
           onChange={(e) => setSearchValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={handleInputFocus}
-          className="w-92 pl-10 pr-10 mt-0 bg-black/50 border-amber-500/30 focus:border-amber-500 text-white placeholder:text-slate-400"
+          className="w-92 pl-10 pr-10 m-0 bg-black/50 border-amber-500/30 focus:border-amber-500 text-white placeholder:text-slate-400"
         />
         {searchValue && (
           <button

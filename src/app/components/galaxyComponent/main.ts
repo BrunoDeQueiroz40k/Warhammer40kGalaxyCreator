@@ -406,6 +406,47 @@ function initThree(): void {
   mouse = new THREE.Vector2();
 
   setupPlanetEditing();
+  setupWindowResize();
+}
+
+function setupWindowResize() {
+  // Add window resize listener
+  window.addEventListener("resize", onWindowResize);
+}
+
+function onWindowResize() {
+  if (!camera || !renderer || !canvas) return;
+
+  // Force canvas to use CSS dimensions
+  const canvasWidth = window.innerWidth;
+  const canvasHeight = window.innerHeight;
+
+  // Update camera aspect ratio
+  camera.aspect = canvasWidth / canvasHeight;
+  camera.updateProjectionMatrix();
+
+  // Update renderer size - this is crucial for fixing the inline styles
+  renderer.setSize(canvasWidth, canvasHeight, false);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  // Update bloom pass size
+  if (bloomComposer) {
+    const bloomPass = bloomComposer.passes[1] as UnrealBloomPass;
+    if (bloomPass) {
+      bloomPass.setSize(canvasWidth, canvasHeight);
+    }
+  }
+
+  // Update composers
+  if (baseComposer) {
+    baseComposer.setSize(canvasWidth, canvasHeight);
+  }
+  if (bloomComposer) {
+    bloomComposer.setSize(canvasWidth, canvasHeight);
+  }
+  if (overlayComposer) {
+    overlayComposer.setSize(canvasWidth, canvasHeight);
+  }
 }
 
 function initRenderPipeline(): void {
@@ -415,7 +456,7 @@ function initRenderPipeline(): void {
     logarithmicDepthBuffer: true,
   });
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
@@ -470,6 +511,7 @@ function resizeRendererToDisplaySize(renderer: THREE.WebGLRenderer): boolean {
   const needResize = canvas.width !== width || canvas.height !== height;
   if (needResize) {
     renderer.setSize(width, height, false);
+    renderer.setPixelRatio(window.devicePixelRatio);
   }
   return needResize;
 }

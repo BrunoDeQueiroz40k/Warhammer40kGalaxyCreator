@@ -1,5 +1,24 @@
 import { ExportablePlanetData } from "./galaxyExport";
 
+// Schema de validação para planetas
+interface PlanetSchema {
+  name: string;
+  faction: string;
+  planetType: string;
+  description: string;
+  population: number;
+  status: "ativo" | "destruido";
+  image: string;
+  vrchatUrl: string;
+  color: string;
+  segmentum: string;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+}
+
 interface GalaxyCacheData {
   planets: ExportablePlanetData[];
   timestamp: number;
@@ -12,19 +31,57 @@ export class GalaxyCache {
   private static readonly TIMESTAMP_KEY = "galaxy-cookie-timestamp";
   private static readonly SESSION_KEY = "galaxy-session-id";
   private static readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutos em millisegundos (só quando fechar o site)
+  private static readonly MAX_CACHE_SIZE = 5 * 1024 * 1024; // 5MB máximo para o cache
 
-  /**
-   * Verifica se o usuário deu consentimento para cookies
-   */
+  // Valida se um planeta tem a estrutura correta
+  private static validatePlanet(planet: unknown): planet is PlanetSchema {
+    if (!planet || typeof planet !== "object" || planet === null) return false;
+
+    const p = planet as Record<string, unknown>;
+    return (
+      typeof p.name === "string" &&
+      typeof p.faction === "string" &&
+      typeof p.planetType === "string" &&
+      typeof p.description === "string" &&
+      typeof p.population === "number" &&
+      (p.status === "ativo" || p.status === "destruido") &&
+      typeof p.image === "string" &&
+      typeof p.vrchatUrl === "string" &&
+      typeof p.color === "string" &&
+      typeof p.segmentum === "string" &&
+      Boolean(p.position) &&
+      typeof p.position === "object" &&
+      p.position !== null &&
+      typeof (p.position as Record<string, unknown>).x === "number" &&
+      typeof (p.position as Record<string, unknown>).y === "number" &&
+      typeof (p.position as Record<string, unknown>).z === "number"
+    );
+  }
+
+  // Valida os dados do cache
+  private static validateCacheData(data: unknown): data is GalaxyCacheData {
+    if (!data || typeof data !== "object" || data === null) return false;
+
+    const d = data as Record<string, unknown>;
+    return (
+      Array.isArray(d.planets) &&
+      typeof d.timestamp === "number" &&
+      typeof d.sessionId === "string" &&
+      d.planets.every((planet: unknown) => this.validatePlanet(planet))
+    );
+  }
+
+  // Verifica se o cache não excede o tamanho máximo
+  private static isCacheSizeValid(data: string): boolean {
+    return data.length <= this.MAX_CACHE_SIZE;
+  }
+
+  // Verifica se o usuário deu consentimento para cookies
   static hasConsent(): boolean {
     if (typeof window === "undefined") return false;
     return localStorage.getItem(this.CONSENT_KEY) === "accepted";
   }
 
-  /**
-   * Verifica se o cache ainda é válido
-   * O cache só expira quando a pessoa fecha o site (30 minutos após o último save)
-   */
   static isCacheValid(): boolean {
     if (!this.hasConsent()) return false;
     if (typeof window === "undefined") return false;
@@ -45,10 +102,6 @@ export class GalaxyCache {
     return true;
   }
 
-  /**
-   * Verifica se a sessão ainda está ativa
-   * A sessão permanece ativa enquanto o site estiver aberto
-   */
   static isSessionActive(): boolean {
     if (!this.hasConsent()) return false;
     if (typeof window === "undefined") return false;
@@ -57,10 +110,6 @@ export class GalaxyCache {
     return !!sessionId; // Sessão ativa se existe um ID de sessão
   }
 
-  /**
-   * Atualiza a última atividade do usuário
-   * Agora só atualiza o timestamp do cache, não controla inatividade
-   */
   static updateActivity(): void {
     if (!this.hasConsent()) return;
     if (typeof window === "undefined") return;
@@ -69,14 +118,20 @@ export class GalaxyCache {
     localStorage.setItem(this.TIMESTAMP_KEY, Date.now().toString());
   }
 
-  /**
-   * Salva os dados da galáxia no cache
-   */
-  static saveGalaxy(planets: ExportablePlanetData[]): void {
-    if (!this.hasConsent()) return;
-    if (typeof window === "undefined") return;
+  // Salva os dados da galáxia no cache com validação
+  static saveGalaxy(planets: ExportablePlanetData[]): boolean {
+    if (!this.hasConsent()) return false;
+    if (typeof window === "undefined") return false;
 
     try {
+      // Validar planetas antes de salvar
+      if (!planets.every((planet) => this.validatePlanet(planet))) {
+        console.warn(
+          "Alguns planetas têm dados inválidos, ignorando salvamento"
+        );
+        return false;
+      }
+
       const sessionId = this.getOrCreateSessionId();
       const cacheData: GalaxyCacheData = {
         planets,
@@ -84,13 +139,29 @@ export class GalaxyCache {
         sessionId,
       };
 
-      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+      const cacheString = JSON.stringify(cacheData);
+
+      // Verificar tamanho do cache
+      if (!this.isCacheSizeValid(cacheString)) {
+        console.warn("Cache muito grande, limpando dados antigos");
+        this.clearCache();
+        return false;
+      }
+
+      localStorage.setItem(this.CACHE_KEY, cacheString);
       localStorage.setItem(this.TIMESTAMP_KEY, Date.now().toString());
       this.updateActivity();
 
       console.log("Galáxia salva no cache:", planets.length, "planetas");
+      return true;
     } catch (error) {
       console.error("Erro ao salvar galáxia no cache:", error);
+      // Tentar limpar cache corrompido
+      if (error instanceof DOMException && error.code === 22) {
+        console.log("Cache corrompido, limpando...");
+        this.clearCache();
+      }
+      return false;
     }
   }
 
@@ -103,7 +174,14 @@ export class GalaxyCache {
       const cachedData = localStorage.getItem(this.CACHE_KEY);
       if (!cachedData) return null;
 
-      const parsedData: GalaxyCacheData = JSON.parse(cachedData);
+      const parsedData = JSON.parse(cachedData);
+
+      // Validar estrutura dos dados
+      if (!this.validateCacheData(parsedData)) {
+        console.warn("Dados do cache inválidos, limpando...");
+        this.clearCache();
+        return null;
+      }
 
       // Verificar se a sessão ainda é a mesma (só muda quando fecha e abre o site)
       const currentSessionId = this.getOrCreateSessionId();
@@ -124,6 +202,8 @@ export class GalaxyCache {
       return parsedData.planets;
     } catch (error) {
       console.error("Erro ao carregar galáxia do cache:", error);
+      // Limpar cache corrompido
+      this.clearCache();
       return null;
     }
   }

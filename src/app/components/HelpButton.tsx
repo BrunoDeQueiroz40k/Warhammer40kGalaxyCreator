@@ -6,7 +6,7 @@ export function HelpButton() {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <Button className="fixed bottom-3.5 right-3.5 z-20 p-2">
+        <Button className="p-2">
           <CircleQuestionMark className="!w-6 !h-6" />
         </Button>
       </Dialog.Trigger>

@@ -9,11 +9,15 @@ import { Label } from "./ui/label";
 interface VisualizationProps {
   showSegmentums: boolean;
   onToggleSegmentums: (show: boolean) => void;
+  showPlanetNames: boolean;
+  onTogglePlanetNames: (show: boolean) => void;
 }
 
 export function Visualization({
   showSegmentums,
   onToggleSegmentums,
+  showPlanetNames,
+  onTogglePlanetNames,
 }: VisualizationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,15 +26,15 @@ export function Visualization({
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="fixed bottom-32 right-3.5 z-20 p-2 transition-all duration-300"
+          className="p-2 transition-all duration-300"
         >
           <Eye className="!w-6 !h-6" />
         </Button>
       )}
       <div
-        className={`fixed bottom-32 right-3.5 z-50 bg-black/90 border border-amber-500/30 rounded-lg text-white pointer-events-auto transform transition-all duration-500 ease-out ${
+        className={`fixed bottom-30.5 right-3.5 z-50 bg-black/90 border border-amber-500/30 rounded-lg text-white pointer-events-auto transform transition-all duration-500 ease-out ${
           isOpen
-            ? "w-80 h-64 px-4 py-2 opacity-100 scale-100"
+            ? "w-68 p-4 opacity-100 scale-100"
             : "w-12 h-12 p-2 opacity-0 scale-0"
         }`}
       >
@@ -68,6 +72,22 @@ export function Visualization({
                   className="text-sm font-medium text-white cursor-pointer"
                 >
                   Mostrar Segmentos
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show-planet-names"
+                  checked={showPlanetNames}
+                  onCheckedChange={(checked) =>
+                    onTogglePlanetNames(checked as boolean)
+                  }
+                />
+                <Label
+                  htmlFor="show-planet-names"
+                  className="text-sm font-medium text-white cursor-pointer"
+                >
+                  Mostrar Nomes dos Planetas
                 </Label>
               </div>
             </div>
