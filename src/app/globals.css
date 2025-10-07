@@ -72,3 +72,46 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Loading shine effect */
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-200%) skewX(-15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+
+.loading-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent 70%,
+    transparent 100%
+  );
+  animation: shine-sweep 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
