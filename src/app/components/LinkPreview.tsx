@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { ExternalLink, AlertCircle } from "lucide-react";
 import Image from "next/image";
+import { Loading } from "./Loading";
 
 interface LinkPreviewProps {
   url: string;
@@ -81,7 +82,6 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
 
           setPreviewData(data);
         } catch (err) {
-          console.error("Error fetching preview:", err);
           setError(
             err instanceof Error ? err.message : "Failed to load preview"
           );
@@ -116,8 +116,8 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
                 {loading
                   ? "Carregando..."
                   : error
-                  ? "Erro ao carregar"
-                  : previewData?.title || "Untitled"}
+                    ? "Erro ao carregar"
+                    : previewData?.title || "Untitled"}
               </h3>
               {previewData?.description && !loading && !error && (
                 <p className="text-slate-400 text-xs line-clamp-2">
@@ -150,7 +150,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
           <div className="w-32 h-24 bg-gradient-to-br from-amber-500/20 to-amber-600/30 flex-shrink-0 relative overflow-hidden">
             {loading ? (
               <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+                <Loading size={40} animationSpeed={7} />
               </div>
             ) : error ? (
               <div className="w-full h-full flex items-center justify-center">

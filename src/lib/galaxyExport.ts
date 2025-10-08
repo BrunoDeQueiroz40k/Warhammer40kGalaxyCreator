@@ -53,24 +53,18 @@ export class GalaxyExporter {
             // Adicionar imagem à pasta do planeta
             planetFolder?.file("imagem.png", imageBlob);
           } catch (error) {
-            console.warn(
-              `Erro ao processar imagem do planeta ${planet.name}:`,
-              error
-            );
+            console.error("Erro ao adicionar imagem do planeta:", error);
           }
         }
       }
 
       // Gerar e baixar o arquivo ZIP
       const content = await zip.generateAsync({ type: "blob" });
-      const fileName = `galaxy_export_${
-        new Date().toISOString().split("T")[0]
-      }.zip`;
+      const fileName = `galaxy_export_${new Date().toISOString().split("T")[0]
+        }.zip`;
       saveAs(content, fileName);
 
-      console.log("Galáxia exportada com sucesso!");
     } catch (error) {
-      console.error("Erro ao exportar galáxia:", error);
       throw error;
     }
   }
@@ -107,20 +101,15 @@ export class GalaxyExporter {
               processedPlanet.image = base64Image;
             }
           } catch (error) {
-            console.warn(
-              `Erro ao carregar imagem do planeta ${planet.name}:`,
-              error
-            );
+            console.error("Erro ao processar imagem do planeta:", error);
           }
         }
 
         processedPlanets.push(processedPlanet);
       }
 
-      console.log("Galáxia importada com sucesso!");
       return processedPlanets;
     } catch (error) {
-      console.error("Erro ao importar galáxia:", error);
       throw error;
     }
   }

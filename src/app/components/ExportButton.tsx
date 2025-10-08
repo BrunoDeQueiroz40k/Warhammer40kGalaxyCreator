@@ -83,7 +83,6 @@ export function ExportButton() {
       setResultType("success");
       setShowResultDialog(true);
     } catch (error) {
-      console.error("Erro ao exportar galáxia:", error);
       setResultMessage("Erro ao exportar galáxia. Tente novamente.");
       setResultType("error");
       setShowResultDialog(true);

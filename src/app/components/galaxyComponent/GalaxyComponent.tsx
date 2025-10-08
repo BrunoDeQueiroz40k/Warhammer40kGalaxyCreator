@@ -43,7 +43,6 @@ export default function GalaxyComponent({
 
     // Listen for planet click events
     const handlePlanetClick = (event: CustomEvent) => {
-      console.log("Planet click event received:", event.detail);
       const planet = event.detail.planet;
       setSelectedPlanet(planet);
 
@@ -202,13 +201,11 @@ export default function GalaxyComponent({
 
   const handleEditPlanet = () => {
     // TODO: Implement planet editing
-    console.log("Edit planet:", selectedPlanet?.data);
   };
 
   const handleDeletePlanet = () => {
     if (selectedPlanet) {
       // TODO: Implement planet deletion
-      console.log("Delete planet:", selectedPlanet.data);
       setSelectedPlanet(null);
     }
   };

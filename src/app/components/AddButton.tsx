@@ -34,9 +34,15 @@ interface GalaxyInstance {
   addPlanet: (planetData: PlanetData) => void;
   getPlanetInEditMode: () => Planet | null;
   confirmPlanetPosition: (planet: Planet) => void;
+  updatePlanet: (planetData: PlanetData) => void;
 }
 
-export function AddButton() {
+interface AddButtonProps {
+  editingPlanet?: PlanetData | null;
+  onEditComplete?: () => void;
+}
+
+export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
   const [planetData, setPlanetData] = useState<PlanetData>({
     name: "",
     faction: "",
@@ -53,28 +59,56 @@ export function AddButton() {
   );
   const [open, setOpen] = useState(false);
   const [planetInEditMode, setPlanetInEditMode] = useState<Planet | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Carregar dados do planeta quando estiver editando
+  useEffect(() => {
+    if (editingPlanet) {
+      setPlanetData(editingPlanet);
+      setSelectedColor(editingPlanet.color || "");
+      setSelectedSegmentum(editingPlanet.segmentum || null);
+      setIsEditing(true);
+      setOpen(true);
+    } else {
+      setIsEditing(false);
+    }
+  }, [editingPlanet]);
 
   const handleCreatePlanet = () => {
     // Access the global galaxy instance
     const galaxyInstance = (window as { galaxyInstance?: GalaxyInstance })
       .galaxyInstance;
-    if (galaxyInstance && galaxyInstance.addPlanet) {
-      // Create planet at position (0,0,0) - it will enter edit mode automatically
-      const planetDataWithDefaultPosition = {
+    if (galaxyInstance) {
+      const planetDataWithDefaults = {
         ...planetData,
         color: selectedColor,
         segmentum: selectedSegmentum || undefined,
-        position: { x: 0, y: 0, z: 0 },
+        position: isEditing ? planetData.position : { x: 0, y: 0, z: 0 },
       };
 
-      galaxyInstance.addPlanet(planetDataWithDefaultPosition);
-      console.log(
-        "Planeta criado em modo de edição:",
-        planetDataWithDefaultPosition
-      );
-
-      // Disparar evento para salvar imediatamente no cache
-      GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
+      if (isEditing && galaxyInstance.updatePlanet) {
+        // Atualizar planeta existente
+        galaxyInstance.updatePlanet(planetDataWithDefaults);
+        
+        // Disparar evento para salvar imediatamente no cache
+        GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_UPDATED);
+        
+        // Chamar callback de conclusão
+        if (onEditComplete) {
+          onEditComplete();
+        }
+      } else if (galaxyInstance.addPlanet) {
+        // Criar novo planeta
+        galaxyInstance.addPlanet(planetDataWithDefaults);
+        
+        // Disparar evento para salvar imediatamente no cache
+        GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
+        
+        // Check for planet in edit mode
+        setTimeout(() => {
+          checkPlanetInEditMode();
+        }, 100);
+      }
 
       // Reset form
       setPlanetData({
@@ -89,16 +123,11 @@ export function AddButton() {
       });
       setSelectedColor("");
       setSelectedSegmentum(null);
+      setIsEditing(false);
 
       // Close dialog
       setOpen(false);
-
-      // Check for planet in edit mode
-      setTimeout(() => {
-        checkPlanetInEditMode();
-      }, 100);
     } else {
-      console.error("Galaxy instance not found");
     }
   };
 
@@ -118,7 +147,6 @@ export function AddButton() {
       if (galaxyInstance && galaxyInstance.confirmPlanetPosition) {
         galaxyInstance.confirmPlanetPosition(planetInEditMode);
         setPlanetInEditMode(null);
-        console.log("Posição do planeta confirmada!");
       }
     }
   };
@@ -142,7 +170,7 @@ export function AddButton() {
             <div className="flex gap-6 w-full max-w-4xl items-center">
               <Dialog.Content className="bg-black/90 rounded-md border border-amber-500/30 p-6 w-full max-w-lg text-white max-h-[90vh] overflow-y-auto overflow-x-hidden">
                 <Dialog.Title className="text-xl font-semibold mb-4">
-                  Crie o seu planeta!
+                  {isEditing ? "Editar Planeta" : "Crie o seu planeta!"}
                 </Dialog.Title>
 
                 <Label>Nome:</Label>
@@ -322,7 +350,7 @@ export function AddButton() {
                     className="px-4 py-2"
                     onClick={handleCreatePlanet}
                   >
-                    Criar Planeta
+                    {isEditing ? "Atualizar Planeta" : "Criar Planeta"}
                   </Button>
                 </div>
               </Dialog.Content>

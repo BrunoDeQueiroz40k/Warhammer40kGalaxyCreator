@@ -44,7 +44,6 @@ export function ImportButton() {
       setPendingFile(file);
       setShowConfirmDialog(true);
     } catch (error) {
-      console.error("Erro ao validar arquivo:", error);
       setResultMessage(
         "Erro ao validar arquivo. Verifique se o arquivo é válido."
       );
@@ -96,13 +95,11 @@ export function ImportButton() {
         setResultType("success");
         setShowResultDialog(true);
       } else {
-        console.error("Instância da galáxia não encontrada");
         setResultMessage("Erro: Instância da galáxia não encontrada");
         setResultType("error");
         setShowResultDialog(true);
       }
     } catch (error) {
-      console.error("Erro ao importar galáxia:", error);
       setResultMessage(
         "Erro ao importar galáxia. Verifique se o arquivo é válido."
       );

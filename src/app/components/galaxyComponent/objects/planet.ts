@@ -180,4 +180,16 @@ export class Planet {
       this.obj.material.blending = THREE.AdditiveBlending;
     }
   }
+
+  updateVisual() {
+    // Atualizar cor se mudou
+    if (this.data.color) {
+      this.updateColor(this.data.color);
+    }
+    
+    // Atualizar posição do objeto 3D
+    if (this.obj) {
+      this.obj.position.copy(this.position);
+    }
+  }
 }

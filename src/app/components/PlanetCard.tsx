@@ -83,7 +83,7 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
     >
       <div
         className={`
-        bg-black/95 border border-amber-500/30 rounded-lg shadow-2xl w-96 min-h-[400px] max-h-[85vh] overflow-y-auto overflow-x-hidden
+        bg-black/95 border border-amber-500/30 rounded-lg w-96 min-h-[400px] max-h-[85vh] overflow-y-auto overflow-x-hidden
         transform transition-all duration-300
         ${isVisible ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}
       `}
@@ -146,11 +146,10 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
               <div className="border border-amber-500/30 rounded-md p-4 px-6 space-y-1 w-full">
                 <p className="text-slate-400 font-bold text-xs">STATUS</p>
                 <p
-                  className={`font-bold ${
-                    planet.status === "destruido"
+                  className={`font-bold ${planet.status === "destruido"
                       ? "text-red-500"
                       : "text-green-500"
-                  }`}
+                    }`}
                 >
                   {planet.status === "destruido" ? "Destruído" : "Ativo"}
                 </p>

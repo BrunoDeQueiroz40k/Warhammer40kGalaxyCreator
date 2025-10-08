@@ -108,11 +108,10 @@ export function Preview({
               <div className="border border-amber-500/30 rounded-md p-4 px-6 space-y-1 w-full">
                 <p className="text-slate-400 font-bold text-xs">STATUS</p>
                 <p
-                  className={`font-bold ${
-                    planetData.status === "destruido"
+                  className={`font-bold ${planetData.status === "destruido"
                       ? "text-red-500"
                       : "text-green-500"
-                  }`}
+                    }`}
                 >
                   {planetData.status === "destruido" ? "Destruído" : "Ativo"}
                 </p>
@@ -182,14 +181,14 @@ export function Preview({
                       selectedColor === "Azul"
                         ? "#0080ff"
                         : selectedColor === "Verde"
-                        ? "#00ff80"
-                        : selectedColor === "Vermelho"
-                        ? "#ff0000"
-                        : selectedColor === "Amarelo"
-                        ? "#ffcc00"
-                        : selectedColor === "Roxo"
-                        ? "#cc00ff"
-                        : "#ffffff",
+                          ? "#00ff80"
+                          : selectedColor === "Vermelho"
+                            ? "#ff0000"
+                            : selectedColor === "Amarelo"
+                              ? "#ffcc00"
+                              : selectedColor === "Roxo"
+                                ? "#cc00ff"
+                                : "#ffffff",
                   }}
                 />
                 <p className="text-slate-200 font-medium">{selectedColor}</p>

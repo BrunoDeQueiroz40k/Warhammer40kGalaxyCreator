@@ -141,6 +141,36 @@ export class Galaxy {
     GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_UPDATED);
   }
 
+  updatePlanet(updatedPlanetData: PlanetData): void {
+    // Tentar encontrar o planeta por nome
+    let planet = this.planets.find(p => p.data.name === updatedPlanetData.name);
+    
+    if (!planet) {
+      // Tentar encontrar por outros critérios se o nome mudou
+      planet = this.planets.find(p => 
+        p.data.faction === updatedPlanetData.faction && 
+        p.data.planetType === updatedPlanetData.planetType &&
+        Math.abs(p.position.x - updatedPlanetData.position.x) < 0.1 &&
+        Math.abs(p.position.y - updatedPlanetData.position.y) < 0.1 &&
+        Math.abs(p.position.z - updatedPlanetData.position.z) < 0.1
+      );
+    }
+    
+    if (planet) {
+      // Atualizar dados do planeta
+      planet.data = { ...updatedPlanetData };
+      
+      // Atualizar posição se necessário
+      planet.position.set(updatedPlanetData.position.x, updatedPlanetData.position.y, updatedPlanetData.position.z);
+      
+      // Atualizar visual do planeta
+      planet.updateVisual();
+      
+      // Disparar evento para salvar imediatamente no cache
+      GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_UPDATED);
+    }
+  }
+
   removePlanet(planet: Planet): void {
     const index = this.planets.indexOf(planet);
     if (index > -1) {
@@ -149,6 +179,13 @@ export class Galaxy {
       
       // Disparar evento para salvar imediatamente no cache
       GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_REMOVED);
+    }
+  }
+
+  removePlanetByData(planetData: PlanetData): void {
+    const planet = this.planets.find(p => p.data.name === planetData.name);
+    if (planet) {
+      this.removePlanet(planet);
     }
   }
 

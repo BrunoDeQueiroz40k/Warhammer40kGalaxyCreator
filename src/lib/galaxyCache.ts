@@ -126,9 +126,6 @@ export class GalaxyCache {
     try {
       // Validar planetas antes de salvar
       if (!planets.every((planet) => this.validatePlanet(planet))) {
-        console.warn(
-          "Alguns planetas têm dados inválidos, ignorando salvamento"
-        );
         return false;
       }
 
@@ -143,7 +140,6 @@ export class GalaxyCache {
 
       // Verificar tamanho do cache
       if (!this.isCacheSizeValid(cacheString)) {
-        console.warn("Cache muito grande, limpando dados antigos");
         this.clearCache();
         return false;
       }
@@ -152,13 +148,10 @@ export class GalaxyCache {
       localStorage.setItem(this.TIMESTAMP_KEY, Date.now().toString());
       this.updateActivity();
 
-      console.log("Galáxia salva no cache:", planets.length, "planetas");
       return true;
     } catch (error) {
-      console.error("Erro ao salvar galáxia no cache:", error);
       // Tentar limpar cache corrompido
       if (error instanceof DOMException && error.code === 22) {
-        console.log("Cache corrompido, limpando...");
         this.clearCache();
       }
       return false;
@@ -178,7 +171,6 @@ export class GalaxyCache {
 
       // Validar estrutura dos dados
       if (!this.validateCacheData(parsedData)) {
-        console.warn("Dados do cache inválidos, limpando...");
         this.clearCache();
         return null;
       }
@@ -186,23 +178,14 @@ export class GalaxyCache {
       // Verificar se a sessão ainda é a mesma (só muda quando fecha e abre o site)
       const currentSessionId = this.getOrCreateSessionId();
       if (parsedData.sessionId !== currentSessionId) {
-        console.log(
-          "Sessão diferente (site foi fechado e reaberto), cache inválido"
-        );
         return null;
       }
 
       // Atualiza o timestamp para manter os 30 minutos
       this.updateActivity();
-      console.log(
-        "Galáxia carregada do cache:",
-        parsedData.planets.length,
-        "planetas"
-      );
       return parsedData.planets;
     } catch (error) {
       console.error("Erro ao carregar galáxia do cache:", error);
-      // Limpar cache corrompido
       this.clearCache();
       return null;
     }
@@ -214,7 +197,6 @@ export class GalaxyCache {
     localStorage.removeItem(this.CACHE_KEY);
     localStorage.removeItem(this.TIMESTAMP_KEY);
     localStorage.removeItem(this.SESSION_KEY);
-    console.log("Cache da galáxia limpo");
   }
 
   private static getOrCreateSessionId(): string {

@@ -45,8 +45,8 @@ export function useGalaxyCache() {
       const planets = galaxyInstance.getAllPlanetsData
         ? galaxyInstance.getAllPlanetsData()
         : galaxyInstance.getPlanets
-        ? galaxyInstance.getPlanets()
-        : [];
+          ? galaxyInstance.getPlanets()
+          : [];
 
       if (planets.length > 0) {
         // Converter para formato exportável
@@ -78,7 +78,7 @@ export function useGalaxyCache() {
         lastSavedDataRef.current = currentData;
       }
     } catch (error) {
-      console.error("Erro ao salvar galáxia no cache:", error);
+      console.error("Erro ao salvar galáxia:", error);
     }
   }, []);
 
@@ -121,13 +121,10 @@ export function useGalaxyCache() {
           }
         }
 
-        console.log(
-          `Galáxia carregada do cache: ${cachedPlanets.length} planetas`
-        );
         return true;
       }
     } catch (error) {
-      console.error("Erro ao carregar galáxia do cache:", error);
+      console.error("Erro ao carregar galáxia:", error);
     }
     return false;
   }, []);
@@ -135,7 +132,7 @@ export function useGalaxyCache() {
   // Configurar salvamento automático otimizado
   useEffect(() => {
     if (!GalaxyCache.hasConsent()) return;
-    
+
     // Reduzir frequência de salvamento automático para 2 minutos
     const saveInterval = setInterval(() => {
       GalaxyCache.updateActivity();

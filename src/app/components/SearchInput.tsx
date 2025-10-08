@@ -54,7 +54,6 @@ export function SearchInput() {
         : [];
       return planets;
     } catch (error) {
-      console.error("Erro ao obter planetas:", error);
       return [];
     }
   };

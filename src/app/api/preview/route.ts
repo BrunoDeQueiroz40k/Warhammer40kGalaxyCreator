@@ -109,7 +109,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(previewData);
 
   } catch (error) {
-    console.error('Error fetching preview:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

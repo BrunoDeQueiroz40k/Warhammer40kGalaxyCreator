@@ -10,11 +10,25 @@ export function CookieConsent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Verificar se o usuário já deu consentimento
-    const consent = localStorage.getItem("galaxy-cookie-consent");
-    if (!consent) {
-      setShowConsent(true);
-    }
+
+    // Aguardar um pouco para garantir que o localStorage esteja disponível
+    const checkConsent = () => {
+      try {
+        const consent = localStorage.getItem("galaxy-cookie-consent");
+        if (!consent) {
+          setShowConsent(true);
+        }
+      } catch (error) {
+        // Se houver erro ao acessar localStorage, mostrar o aviso
+        setShowConsent(true);
+      }
+    };
+
+    // Verificar imediatamente e também após um pequeno delay
+    checkConsent();
+    const timer = setTimeout(checkConsent, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAccept = () => {
@@ -31,7 +45,7 @@ export function CookieConsent() {
   if (!isMounted || !showConsent) return null;
 
   return (
-    <div className="bg-gray-900 border border-amber-500/30 rounded-lg p-4 shadow-lg">
+    <div className="fixed bottom-4 left-4 right-4 z-[99] bg-gray-900 border border-amber-500/30 rounded-lg p-4 w-165.5">
       <div className="flex items-start">
         <div>
           <h3 className="text-lg font-semibold text-white mb-2">

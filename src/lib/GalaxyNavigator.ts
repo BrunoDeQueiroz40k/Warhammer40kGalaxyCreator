@@ -25,7 +25,6 @@ export class GalaxyNavigator {
       const controls = (window as { orbit?: OrbitControls }).orbit;
 
       if (!camera || !controls) {
-        console.warn("Câmera ou controles não encontrados");
         return;
       }
 
@@ -79,15 +78,12 @@ export class GalaxyNavigator {
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          console.log(
-            `Navegação concluída para ${planet.data?.name} em (${planetPosition.x}, ${planetPosition.y}, ${planetPosition.z})`
-          );
         }
       };
 
       animate();
     } catch (error) {
-      console.error("Erro ao navegar para o planeta:", error);
+      console.error("Erro ao navegar para planeta:", error);
     }
   }
 
@@ -102,7 +98,6 @@ export class GalaxyNavigator {
       const controls = (window as { orbit?: OrbitControls }).orbit;
 
       if (!camera || !controls) {
-        console.warn("Câmera ou controles não encontrados");
         return;
       }
 
@@ -148,15 +143,12 @@ export class GalaxyNavigator {
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          console.log(
-            `Navegação concluída para posição (${targetPosition.x}, ${targetPosition.y}, ${targetPosition.z})`
-          );
         }
       };
 
       animate();
     } catch (error) {
-      console.error("Erro ao navegar para a posição:", error);
+      console.error("Erro ao navegar para posição:", error);
     }
   }
 
@@ -168,7 +160,6 @@ export class GalaxyNavigator {
       const controls = (window as { orbit?: OrbitControls }).orbit;
 
       if (!camera || !controls) {
-        console.warn("Câmera ou controles não encontrados");
         return;
       }
 

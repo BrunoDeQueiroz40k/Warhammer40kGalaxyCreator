@@ -52,8 +52,8 @@ export function PlanetList() {
       const planets = galaxyInstance.getAllPlanetsData
         ? galaxyInstance.getAllPlanetsData()
         : galaxyInstance.getPlanets
-        ? galaxyInstance.getPlanets()
-        : [];
+          ? galaxyInstance.getPlanets()
+          : [];
       return planets;
     } catch (error) {
       console.error("Erro ao obter planetas:", error);
@@ -264,9 +264,8 @@ export function PlanetList() {
                     <div
                       key={`${result.planet.data?.name}-${index}`}
                       onClick={() => handlePlanetClick(result.planet)}
-                      className={`px-4 py-3 cursor-pointer border-b border-amber-500/30 last:border-b-0 hover:bg-amber-500/10 transition-colors ${
-                        index === selectedIndex ? "bg-amber-500/20" : ""
-                      }`}
+                      className={`px-4 py-3 cursor-pointer border-b border-amber-500/30 last:border-b-0 hover:bg-amber-500/10 transition-colors ${index === selectedIndex ? "bg-amber-500/20" : ""
+                        }`}
                     >
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
