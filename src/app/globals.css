@@ -17,24 +17,24 @@ body {
 
 /* Classe para esconder scrollbars */
 .scrollbar-hide {
-  -ms-overflow-style: none !important;  /* IE and Edge */
-  scrollbar-width: none !important;  /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none !important;  /* Chrome, Safari and Opera */
+  display: none !important; /* Chrome, Safari and Opera */
   width: 0 !important;
   height: 0 !important;
 }
 
 /* Força esconder scrollbars em todos os elementos com overflow */
 * {
-  scrollbar-width: none !important;  /* Firefox */
-  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
 }
 
 *::-webkit-scrollbar {
-  display: none !important;  /* Chrome, Safari and Opera */
+  display: none !important; /* Chrome, Safari and Opera */
   width: 0 !important;
   height: 0 !important;
 }
@@ -61,6 +61,20 @@ html {
     transform: translateX(200%) skewX(-15deg);
     opacity: 0;
   }
+}
+
+/* Background pan animation */
+@keyframes pan-right {
+  0% {
+    transform: translateX(-5%) scale(1.2);
+  }
+  100% {
+    transform: translateX(25%) scale(1.2);
+  }
+}
+
+.animate-pan-right {
+  animation: pan-right 30s linear infinite alternate;
 }
 
 .loading-shine {
