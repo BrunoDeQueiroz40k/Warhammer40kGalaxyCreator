@@ -38,7 +38,11 @@ export function useGalaxyCache() {
         };
       }
     ).galaxyInstance;
-    if (!galaxyInstance) return;
+    
+    if (!galaxyInstance) {
+      console.log("GalaxyInstance não disponível para salvamento");
+      return;
+    }
 
     try {
       // Obter todos os planetas
@@ -48,34 +52,38 @@ export function useGalaxyCache() {
           ? galaxyInstance.getPlanets()
           : [];
 
-      if (planets.length > 0) {
-        // Converter para formato exportável
-        const exportablePlanets = planets.map((planet: Planet) => ({
-          name: planet.data?.name || "",
-          faction: planet.data?.faction || "",
-          planetType: planet.data?.planetType || "",
-          description: planet.data?.description || "",
-          population: planet.data?.population || 0,
-          status: (planet.data?.status as "ativo" | "destruido") || "ativo",
-          image: planet.data?.image || "",
-          vrchatUrl: planet.data?.vrchatUrl || "",
-          color: planet.data?.color || "",
-          segmentum: planet.data?.segmentum || "",
-          position: {
-            x: planet.position?.x || 0,
-            y: planet.position?.y || 0,
-            z: planet.position?.z || 0,
-          },
-        }));
+      // Converter para formato exportável
+      const exportablePlanets = planets.map((planet: Planet) => ({
+        name: planet.data?.name || "",
+        faction: planet.data?.faction || "",
+        planetType: planet.data?.planetType || "",
+        description: planet.data?.description || "",
+        population: planet.data?.population || 0,
+        status: (planet.data?.status as "ativo" | "destruido") || "ativo",
+        image: planet.data?.image || "",
+        vrchatUrl: planet.data?.vrchatUrl || "",
+        color: planet.data?.color || "",
+        segmentum: planet.data?.segmentum || "",
+        position: {
+          x: planet.position?.x || 0,
+          y: planet.position?.y || 0,
+          z: planet.position?.z || 0,
+        },
+      }));
 
-        // Verificar se os dados mudaram para evitar saves desnecessários
-        const currentData = JSON.stringify(exportablePlanets);
-        if (lastSavedDataRef.current === currentData) {
-          return; // Dados não mudaram, não salvar
-        }
+      // Verificar se os dados mudaram para evitar saves desnecessários
+      const currentData = JSON.stringify(exportablePlanets);
+      if (lastSavedDataRef.current === currentData) {
+        console.log("Dados não mudaram, pulando salvamento");
+        return; // Dados não mudaram, não salvar
+      }
 
-        GalaxyCache.saveGalaxy(exportablePlanets);
+      const success = GalaxyCache.saveGalaxy(exportablePlanets);
+      if (success) {
         lastSavedDataRef.current = currentData;
+        console.log(`Galáxia salva no cache: ${exportablePlanets.length} planetas`);
+      } else {
+        console.warn("Falha ao salvar galáxia no cache");
       }
     } catch (error) {
       console.error("Erro ao salvar galáxia:", error);
@@ -92,7 +100,7 @@ export function useGalaxyCache() {
 
   // Carregar galáxia do cache
   const loadGalaxy = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return false;
 
     const galaxyInstance = (
       window as {
@@ -104,11 +112,17 @@ export function useGalaxyCache() {
         };
       }
     ).galaxyInstance;
-    if (!galaxyInstance) return;
+    
+    if (!galaxyInstance) {
+      console.log("GalaxyInstance não está disponível ainda, tentando novamente...");
+      return false;
+    }
 
     try {
       const cachedPlanets = GalaxyCache.loadGalaxy();
       if (cachedPlanets && cachedPlanets.length > 0) {
+        console.log(`Carregando ${cachedPlanets.length} planetas do cache...`);
+        
         // Limpar planetas existentes
         if (galaxyInstance.clearAllPlanets) {
           galaxyInstance.clearAllPlanets();
@@ -121,6 +135,7 @@ export function useGalaxyCache() {
           }
         }
 
+        console.log("Planetas carregados do cache com sucesso!");
         return true;
       }
     } catch (error) {
@@ -144,7 +159,6 @@ export function useGalaxyCache() {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      GalaxyCache.forceSave([]);
       saveGalaxy(); // Salvar imediatamente no beforeunload
     };
 
@@ -168,13 +182,36 @@ export function useGalaxyCache() {
   }, [saveGalaxy, debouncedSave]);
 
   useEffect(() => {
-    if (GalaxyCache.hasConsent()) {
-      const timer = setTimeout(() => {
-        loadGalaxy();
-      }, 1000);
+    if (!GalaxyCache.hasConsent()) return;
 
-      return () => clearTimeout(timer);
-    }
+    let attempts = 0;
+    const maxAttempts = 10; // Máximo 10 tentativas
+    const attemptInterval = 500; // Tentar a cada 500ms
+
+    const tryLoadGalaxy = () => {
+      attempts++;
+      console.log(`Tentativa ${attempts}/${maxAttempts} de carregar galáxia do cache...`);
+      
+      const success = loadGalaxy();
+      
+      if (success) {
+        console.log("Galáxia carregada do cache com sucesso!");
+        return;
+      }
+      
+      if (attempts < maxAttempts) {
+        setTimeout(tryLoadGalaxy, attemptInterval);
+      } else {
+        console.log("Máximo de tentativas atingido. Galáxia não foi carregada do cache.");
+      }
+    };
+
+    // Iniciar tentativas após um pequeno delay
+    const initialTimer = setTimeout(tryLoadGalaxy, 1000);
+
+    return () => {
+      clearTimeout(initialTimer);
+    };
   }, [loadGalaxy]);
 
   // Escutar eventos de mudança na galáxia para salvar com debounce
@@ -198,9 +235,18 @@ export function useGalaxyCache() {
     };
   }, [debouncedSave]);
 
+  // Função para forçar salvamento imediato (sem debounce)
+  const forceSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveGalaxy();
+  }, [saveGalaxy]);
+
   return {
     saveGalaxy,
     loadGalaxy,
+    forceSave,
     hasConsent: GalaxyCache.hasConsent(),
     cacheInfo: GalaxyCache.getCacheInfo(),
   };

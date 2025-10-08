@@ -32,69 +32,27 @@ export function LoadingScreen({
 
   useEffect(() => {
     const warhammerQuotes = [
-      {
-        quote: "In the grim darkness of the far future, there is only war.",
-        author: "Warhammer 40,000 Motto",
-      },
-      {
-        quote: "I was there the day Horus slew the Emperor.",
-        author: "Garviel Loken",
-      },
+      { quote: "In the grim darkness of the far future, there is only war.", author: "Warhammer 40,000 Motto", },
+      { quote: "I was there the day Horus slew the Emperor.", author: "Garviel Loken", },
       { quote: "I am Alpharius.", author: "Alpharius Omegon" },
-      {
-        quote: "The Emperor protects, but the Emperor is dead.",
-        author: "Konrad Curze",
-      },
+      { quote: "The Emperor protects, but the Emperor is dead.", author: "Konrad Curze", },
       { quote: "I am the Emperor's will made manifest.", author: "Rogal Dorn" },
-      {
-        quote: "Knowledge is power, guard it well.",
-        author: "Belisarius Cawl",
-      },
-      {
-        quote: "The Emperor's light shines on the righteous.",
-        author: "Roboute Guilliman",
-      },
-      {
-        quote: "Hope is the first step on the road to disappointment.",
-        author: "Lorgar Aurelian",
-      },
+      { quote: "Knowledge is power, guard it well.", author: "Belisarius Cawl",},
+      { quote: "The Emperor's light shines on the righteous.", author: "Roboute Guilliman",},
+      { quote: "Hope is the first step on the road to disappointment.", author: "Lorgar Aurelian", },
       { quote: "Innocence proves nothing.", author: "Inquisitor Eisenhorn" },
-      {
-        quote: "A small mind is easily filled with faith.",
-        author: "Magnus the Red",
-      },
-      {
-        quote: "Victory needs no explanation, defeat allows none.",
-        author: "Perturabo",
-      },
-      {
-        quote: "The difference between heresy and treachery is ignorance.",
-        author: "Inquisitor Kryptman",
-      },
-      {
-        quote: "A mind without purpose will wander in dark places.",
-        author: "Ahriman",
-      },
+      { quote: "A small mind is easily filled with faith.", author: "Magnus the Red", },
+      { quote: "Victory needs no explanation, defeat allows none.", author: "Perturabo", },
+      { quote: "The difference between heresy and treachery is ignorance.", author: "Inquisitor Kryptman", },
+      { quote: "A mind without purpose will wander in dark places.", author: "Ahriman", },
       { quote: "The Emperor's will is absolute.", author: "Sanguinius" },
       { quote: "Duty is its own reward.", author: "Ferrus Manus" },
-      {
-        quote: "There is no such thing as innocence, only degrees of guilt.",
-        author: "Inquisitor Amberley Vail",
-      },
+      { quote: "There is no such thing as innocence, only degrees of guilt.", author: "Inquisitor Amberley Vail", },
       { quote: "The Emperor's enemies shall know no mercy.", author: "Angron" },
       { quote: "Faith is the strongest shield.", author: "Leman Russ" },
-      {
-        quote: "In the Emperor's name, let none survive.",
-        author: "Ragnar Blackmane",
-      },
-      {
-        quote: "The Emperor's light guides us through the darkness.",
-        author: "Vulkan",
-      },
-      {
-        quote: "I am the hammer. I am the sword in His hand.",
-        author: "Sigismund",
-      },
+      { quote: "In the Emperor's name, let none survive.", author: "Ragnar Blackmane", },
+      { quote: "The Emperor's light guides us through the darkness.", author: "Vulkan", },
+      { quote: "I am the hammer. I am the sword in His hand.", author: "Sigismund", },
       { quote: "The galaxy burns, and we are the flame.", author: "Fulgrim" },
       { quote: "Death to the False Emperor!", author: "Horus Lupercal" },
       { quote: "I am the Emperor's wrath.", author: "Lion El'Jonson" },
