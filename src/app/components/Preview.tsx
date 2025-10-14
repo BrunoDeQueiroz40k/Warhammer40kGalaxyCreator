@@ -129,25 +129,6 @@ export function Preview({
                 "Nenhum relatório disponível ou atribuído"}
             </p>
           </div>
-
-          {/* {planetData.image && (
-            <div className="border border-amber-500/30 rounded-md overflow-hidden">
-              <div className="relative group">
-                <Image
-                  width={192}
-                  height={144}
-                  src={planetData.image}
-                  alt={`Preview de ${planetData.name}`}
-                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <ExternalLink className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
-          )} */}
-
-          {/* Link VRChat - Estilo Notion */}
           {planetData.vrchatUrl ? (
             <LinkPreview url={planetData.vrchatUrl} />
           ) : (

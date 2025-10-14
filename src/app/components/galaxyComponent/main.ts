@@ -50,7 +50,6 @@ let overlayComposer!: EffectComposer;
 let galaxy: Galaxy | null = null;
 let segmentumObjects: Segmentum[] = [];
 
-// Planet editing variables
 let currentPlanet: Planet | null = null;
 let planetMoveSpeed = 0.1; // Base movement speed
 
@@ -58,14 +57,10 @@ let planetMoveSpeed = 0.1; // Base movement speed
 let raycaster: THREE.Raycaster;
 let mouse: THREE.Vector2;
 
-// Camera and renderer will be exposed globally after initialization
-
 function setupPlanetEditing() {
-  // Add keyboard event listeners for planet movement
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
 
-  // Add click event listener for planet selection
   canvas.addEventListener("click", onCanvasClick);
 }
 
@@ -74,73 +69,50 @@ function onCanvasClick(event: MouseEvent) {
     return;
   }
 
-  // Only handle left clicks for planet selection
   if (event.button !== 0) return;
 
-  // Calculate mouse position in normalized device coordinates
   const rect = canvas.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-
-  // Update raycaster
   raycaster.setFromCamera(mouse, camera);
 
-  // Get all planets from galaxy
   const planets = galaxy.getPlanets();
   const planetObjects = planets
     .map((planet) => planet.obj)
     .filter((obj) => obj !== null);
 
-  // Check for intersections with different approaches
   raycaster.near = 0;
   raycaster.far = 1000000; // Very large far distance
 
-  // Try intersection with all objects first
   const allIntersects = raycaster.intersectObjects(scene.children);
 
-  // Also try intersection with bloom layer objects (where planets are)
   raycaster.layers.set(BLOOM_LAYER);
   const bloomIntersects = raycaster.intersectObjects(scene.children);
 
-  // Combine and sort intersections by renderOrder (highest first) to prioritize planets
   const combinedIntersects = [...allIntersects, ...bloomIntersects];
   combinedIntersects.sort(
     (a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0)
   );
 
-  // Reset raycaster to default layer
   raycaster.layers.set(0);
 
-
-  // Then try with just planets
   const intersects = raycaster.intersectObjects(planetObjects);
 
-  // Try with recursive search
-  const recursiveIntersects = raycaster.intersectObjects(planetObjects, true);
-
-
-
-  // Check if any of the intersections are planets
   let clickedPlanet = null;
 
-  // First try direct planet intersections
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
     clickedPlanet = planets.find((planet) => planet.obj === clickedObject);
   }
 
-  // If no direct planet intersection, check all intersections for planets
-  // Since we sorted by renderOrder, check the first intersection (highest priority)
   if (!clickedPlanet && combinedIntersects.length > 0) {
     const firstIntersect = combinedIntersects[0];
 
-    // Check if the first intersected object is a planet using custom property
     if ((firstIntersect.object as PlanetSprite).isPlanet) {
       const planetData = (firstIntersect.object as PlanetSprite).planetData;
       clickedPlanet = planets.find((planet) => planet.data === planetData);
     } else {
-      // Fallback: check by UUID
       const planet = planets.find(
         (planet) => planet.obj && planet.obj.uuid === firstIntersect.object.uuid
       );
@@ -151,11 +123,9 @@ function onCanvasClick(event: MouseEvent) {
   }
 
   if (clickedPlanet) {
-    // Prevent orbit controls from processing this click
     event.stopPropagation();
     event.preventDefault();
 
-    // Dispatch custom event with planet data
     const planetClickEvent = new CustomEvent("planetClick", {
       detail: { planet: clickedPlanet },
     });
@@ -238,13 +208,11 @@ function clearCurrentPlanet() {
 }
 
 function createSegmentums() {
-  // Clear existing segmentums
   segmentumObjects.forEach((segmentum) => {
     scene.remove(segmentum.obj);
   });
   segmentumObjects = [];
 
-  // Create new segmentums
   segmentums.forEach((segmentumData) => {
     const segmentum = new Segmentum(segmentumData, scene);
     segmentumObjects.push(segmentum);
@@ -301,7 +269,6 @@ function initThree(): void {
   // Create segmentums
   createSegmentums();
 
-  // Expose galaxy instance and segmentum functions globally
   (
     window as {
       galaxyInstance?: Galaxy;
@@ -316,7 +283,6 @@ function initThree(): void {
     }
   ).toggleSegmentums = toggleSegmentums;
 
-  // Expor funções simples de controle
   (
     window as {
       setPosicaoSegmentums?: (x: number, y: number, z: number) => void;
@@ -339,26 +305,20 @@ function initThree(): void {
 }
 
 function setupWindowResize() {
-  // Add window resize listener
   window.addEventListener("resize", onWindowResize);
 }
 
 function onWindowResize() {
   if (!camera || !renderer || !canvas) return;
 
-  // Force canvas to use CSS dimensions
   const canvasWidth = window.innerWidth;
   const canvasHeight = window.innerHeight;
 
-  // Update camera aspect ratio
   camera.aspect = canvasWidth / canvasHeight;
   camera.updateProjectionMatrix();
-
-  // Update renderer size - this is crucial for fixing the inline styles
   renderer.setSize(canvasWidth, canvasHeight, false);
   renderer.setPixelRatio(window.devicePixelRatio);
 
-  // Update bloom pass size
   if (bloomComposer) {
     const bloomPass = bloomComposer.passes[1] as UnrealBloomPass;
     if (bloomPass) {

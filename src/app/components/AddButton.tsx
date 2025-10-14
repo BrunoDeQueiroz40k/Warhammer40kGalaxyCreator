@@ -225,13 +225,6 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
                     ))}
                   </SelectContent>
                 </Select>
-                {/* <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
-                  <p className="text-amber-400 text-sm font-medium mb-2">📍 Modo de Edição</p>
-                  <p className="text-slate-300 text-xs">
-                    Após criar o planeta, ele aparecerá na posição (0,0,0) com um indicador verde.
-                    Clique e arraste para posicioná-lo onde desejar, depois use o botão &quot;Posicionar Planeta&quot; para confirmar.
-                  </p>
-                </div> */}
                 <Label>Descrição:</Label>
                 <Textarea
                   placeholder="Descreva o planeta"

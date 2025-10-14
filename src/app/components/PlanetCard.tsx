@@ -147,8 +147,8 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
                 <p className="text-slate-400 font-bold text-xs">STATUS</p>
                 <p
                   className={`font-bold ${planet.status === "destruido"
-                      ? "text-red-500"
-                      : "text-green-500"
+                    ? "text-red-500"
+                    : "text-green-500"
                     }`}
                 >
                   {planet.status === "destruido" ? "Destruído" : "Ativo"}

@@ -5,7 +5,7 @@ import { Loading } from "./Loading";
 import Image from "next/image";
 
 // Array de backgrounds disponíveis - adicione mais números aqui conforme adicionar imagens
-const availableBackgrounds = [1, 2, 3, 4, 5, 6];
+const availableBackgrounds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 interface LoadingScreenProps {
   size?: number;
@@ -37,8 +37,8 @@ export function LoadingScreen({
       { quote: "I am Alpharius.", author: "Alpharius Omegon" },
       { quote: "The Emperor protects, but the Emperor is dead.", author: "Konrad Curze", },
       { quote: "I am the Emperor's will made manifest.", author: "Rogal Dorn" },
-      { quote: "Knowledge is power, guard it well.", author: "Belisarius Cawl",},
-      { quote: "The Emperor's light shines on the righteous.", author: "Roboute Guilliman",},
+      { quote: "Knowledge is power, guard it well.", author: "Belisarius Cawl", },
+      { quote: "The Emperor's light shines on the righteous.", author: "Roboute Guilliman", },
       { quote: "Hope is the first step on the road to disappointment.", author: "Lorgar Aurelian", },
       { quote: "Innocence proves nothing.", author: "Inquisitor Eisenhorn" },
       { quote: "A small mind is easily filled with faith.", author: "Magnus the Red", },
@@ -78,7 +78,7 @@ export function LoadingScreen({
     // Selecionar background aleatório apenas no cliente
     const randomInitialBackground =
       availableBackgrounds[
-        Math.floor(Math.random() * availableBackgrounds.length)
+      Math.floor(Math.random() * availableBackgrounds.length)
       ];
     setCurrentBackground(randomInitialBackground);
 
@@ -87,18 +87,8 @@ export function LoadingScreen({
       setShowBackground(true);
     }, 50);
 
-    // Trocar background a cada 8 segundos
-    const backgroundInterval = setInterval(() => {
-      setCurrentBackground((prev) => {
-        const currentIndex = availableBackgrounds.indexOf(prev);
-        const nextIndex = (currentIndex + 1) % availableBackgrounds.length;
-        return availableBackgrounds[nextIndex];
-      });
-    }, 8000);
-
     return () => {
       clearTimeout(timer);
-      clearInterval(backgroundInterval);
     };
   }, []);
 
