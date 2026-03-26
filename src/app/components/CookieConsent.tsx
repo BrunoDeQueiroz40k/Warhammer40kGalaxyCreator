@@ -19,7 +19,7 @@ export function CookieConsent() {
           setShowConsent(true);
         }
       } catch (error) {
-        // Se houver erro ao acessar localStorage, mostrar o aviso
+        console.error("Error checking consent:", error);
         setShowConsent(true);
       }
     };
