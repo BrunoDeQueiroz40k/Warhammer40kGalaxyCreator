@@ -12,7 +12,7 @@ interface PreviewData {
 // Função para extrair metadados usando regex
 function extractMetadata(html: string, baseUrl: string) {
   const baseUrlObj = new URL(baseUrl);
-  
+
   // Função para converter URLs relativas em absolutas
   const resolveUrl = (url: string) => {
     if (!url) return '';
@@ -26,21 +26,21 @@ function extractMetadata(html: string, baseUrl: string) {
   const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const twitterTitleMatch = html.match(/<meta[^>]*name=["']twitter:title["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  
+
   const title = ogTitleMatch?.[1] || twitterTitleMatch?.[1] || titleMatch?.[1] || 'Untitled';
 
   // Extrair descrição
   const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const twitterDescMatch = html.match(/<meta[^>]*name=["']twitter:description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
-  
+
   const description = ogDescMatch?.[1] || twitterDescMatch?.[1] || metaDescMatch?.[1] || '';
 
   // Extrair imagem
   const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const twitterImageMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']*)["'][^>]*>/i);
   const twitterImageSrcMatch = html.match(/<meta[^>]*name=["']twitter:image:src["'][^>]*content=["']([^"']*)["'][^>]*>/i);
-  
+
   const image = resolveUrl(ogImageMatch?.[1] || twitterImageMatch?.[1] || twitterImageSrcMatch?.[1] || '');
 
   // Extrair favicon
@@ -109,8 +109,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(previewData);
 
   } catch (error) {
+    console.error('Error fetching preview:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch preview' },
       { status: 500 }
     );
   }

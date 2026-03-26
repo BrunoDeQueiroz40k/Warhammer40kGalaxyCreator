@@ -43,8 +43,8 @@ export function ExportButton() {
       const planets = galaxyInstance.getAllPlanetsData
         ? galaxyInstance.getAllPlanetsData()
         : galaxyInstance.getPlanets
-        ? galaxyInstance.getPlanets()
-        : [];
+          ? galaxyInstance.getPlanets()
+          : [];
 
       if (planets.length === 0) {
         setResultMessage("Nenhum planeta encontrado para exportar");
@@ -83,6 +83,7 @@ export function ExportButton() {
       setResultType("success");
       setShowResultDialog(true);
     } catch (error) {
+      console.error("Error exporting galaxy:", error);
       setResultMessage("Erro ao exportar galáxia. Tente novamente.");
       setResultType("error");
       setShowResultDialog(true);

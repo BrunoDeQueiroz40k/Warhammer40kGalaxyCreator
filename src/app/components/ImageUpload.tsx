@@ -20,7 +20,7 @@ export function ImageUpload({ value, onChange, label = "Imagem" }: ImageUploadPr
    const [preview, setPreview] = useState<string | null>(value || null);
    const [position, setPosition] = useState<ImagePosition>({ x: 0, y: 0, scale: 1 });
    const [isDragging, setIsDragging] = useState(false);
-   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+   const dragOffsetYRef = useRef(0);
    const fileInputRef = useRef<HTMLInputElement>(null);
    const containerRef = useRef<HTMLDivElement>(null);
 
@@ -54,28 +54,21 @@ export function ImageUpload({ value, onChange, label = "Imagem" }: ImageUploadPr
    const handleMouseDown = (e: React.MouseEvent) => {
       e.preventDefault();
       setIsDragging(true);
-      setDragStart({
-         x: 0, // Não usado para movimento horizontal
-         y: e.clientY - position.y,
-      });
+      dragOffsetYRef.current = e.clientY - position.y;
    };
 
-   // const handleMouseMove = (e: React.MouseEvent) => {
-   //    if (!isDragging) return;
-   //    e.preventDefault();
+   const handleMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
 
-   //    const newY = e.clientY - dragStart.y;
-   //    const containerHeight = containerRef.current?.clientHeight || 128;
-   //    const maxY = containerHeight / 2;
-   //    const minY = -maxY;
-   //    const clampedY = Math.max(minY, Math.min(maxY, newY));
+      const newY = e.clientY - dragOffsetYRef.current;
+      const containerHeight = containerRef.current?.clientHeight || 128;
+      const maxY = containerHeight / 2;
+      const minY = -maxY;
+      const clampedY = Math.max(minY, Math.min(maxY, newY));
 
-   //    setPosition({
-   //       x: 0, 
-   //       y: clampedY,
-   //       scale: 1,
-   //    });
-   // };
+      setPosition({ x: 0, y: clampedY, scale: 1 });
+   };
 
    const handleMouseUp = () => {
       setIsDragging(false);
@@ -108,7 +101,7 @@ export function ImageUpload({ value, onChange, label = "Imagem" }: ImageUploadPr
                <div
                   ref={containerRef}
                   className="relative w-full h-32 rounded-lg overflow-hidden border border-amber-500/30 bg-gray-900 mt-1"
-                  // onMouseMove={handleMouseMove}
+                  onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                >

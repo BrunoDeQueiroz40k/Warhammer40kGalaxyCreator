@@ -50,10 +50,11 @@ export function SearchInput() {
       const planets = galaxyInstance.getAllPlanetsData
         ? galaxyInstance.getAllPlanetsData()
         : galaxyInstance.getPlanets
-        ? galaxyInstance.getPlanets()
-        : [];
+          ? galaxyInstance.getPlanets()
+          : [];
       return planets;
     } catch (error) {
+      console.error("Error getting all planets:", error);
       return [];
     }
   };
@@ -280,9 +281,8 @@ export function SearchInput() {
               <div
                 key={`${result.planet.data?.name}-${index}`}
                 onClick={() => handleResultClick(result.planet)}
-                className={`px-3 py-2 cursor-pointer border-b border-amber-500/30 last:border-b-0 hover:bg-amber-500/10 transition-colors ${
-                  index === selectedIndex ? "bg-amber-500/20" : ""
-                }`}
+                className={`px-3 py-2 cursor-pointer border-b border-amber-500/30 last:border-b-0 hover:bg-amber-500/10 transition-colors ${index === selectedIndex ? "bg-amber-500/20" : ""
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="text-amber-400">

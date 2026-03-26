@@ -44,6 +44,7 @@ export function ImportButton() {
       setPendingFile(file);
       setShowConfirmDialog(true);
     } catch (error) {
+      console.error("Error validating file:", error);
       setResultMessage(
         "Erro ao validar arquivo. Verifique se o arquivo é válido."
       );
@@ -100,6 +101,7 @@ export function ImportButton() {
         setShowResultDialog(true);
       }
     } catch (error) {
+      console.error("Error importing galaxy:", error);
       setResultMessage(
         "Erro ao importar galáxia. Verifique se o arquivo é válido."
       );
