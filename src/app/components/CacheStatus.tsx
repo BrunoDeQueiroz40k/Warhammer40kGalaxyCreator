@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GalaxyCache } from "../../lib/galaxyCache";
-import { Button } from "./ui/button";
+
 import { Trash2 } from "lucide-react";
 import { Cookie } from "@phosphor-icons/react";
+
+import { Button } from "./ui/button";
+import { GalaxyCache } from "../../lib/galaxyCache";
 
 export function CacheStatus() {
   const [cacheInfo, setCacheInfo] = useState(GalaxyCache.getCacheInfo());

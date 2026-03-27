@@ -1,22 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-interface Planet {
-  data: {
-    name: string;
-    faction: string;
-    planetType: string;
-    description: string;
-    population: number;
-    status: string;
-    color: string;
-    segmentum: string;
-  };
-  position: { x: number; y: number; z: number };
-}
+import { PlanetEntry, PlanetSummaryData } from "../ts/interfaces";
 
 export class GalaxyNavigator {
-  static navigateToPlanet(planet: Planet): void {
+  static navigateToPlanet(planet: PlanetEntry<PlanetSummaryData>): void {
     if (typeof window === "undefined") return;
 
     try {

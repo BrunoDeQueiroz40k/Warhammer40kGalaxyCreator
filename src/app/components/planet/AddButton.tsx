@@ -1,26 +1,30 @@
+import { useState, useEffect } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+
+import { planetTypes } from "../icons/icons";
+import { GiRingedPlanet } from "react-icons/gi";
+import { PlanetIcon } from "@phosphor-icons/react";
+import { ArrowDownToLine, Plus } from "lucide-react";
+
+import { Preview } from "./Preview";
+import { SegmentumSelector } from "./SegmentumSelector";
+import { Planet, PlanetData } from "../galaxyComponent/objects/planet";
+import { GalaxyInstance, AddButtonProps } from "../../../ts/interfaces";
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { useState, useEffect } from "react";
-import { planetTypes } from "./icons/icons";
-import { GiRingedPlanet } from "react-icons/gi";
-import * as Dialog from "@radix-ui/react-dialog";
-import { PlanetIcon } from "@phosphor-icons/react";
-import { ArrowDownToLine, Plus } from "lucide-react";
-import { PlanetData, Planet } from "./galaxyComponent/objects/planet";
-import { SegmentumSelector } from "./SegmentumSelector";
+} from "../ui/select";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import { ImageUpload } from "./ImageUpload";
-import { Preview } from "./Preview";
-import { GalaxyEvents } from "../../lib/galaxyEvents";
+import { GalaxyEvents } from "../../../lib/galaxyEvents";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const planetColors = [
   { name: "Azul", text: "text-blue-500" },
@@ -29,18 +33,6 @@ const planetColors = [
   { name: "Amarelo", text: "text-amber-500" },
   { name: "Roxo", text: "text-purple-500" },
 ];
-
-interface GalaxyInstance {
-  addPlanet: (planetData: PlanetData) => void;
-  getPlanetInEditMode: () => Planet | null;
-  confirmPlanetPosition: (planet: Planet) => void;
-  updatePlanet: (planetData: PlanetData) => void;
-}
-
-interface AddButtonProps {
-  editingPlanet?: PlanetData | null;
-  onEditComplete?: () => void;
-}
 
 export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
   const [planetData, setPlanetData] = useState<PlanetData>({
@@ -89,10 +81,9 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
       if (isEditing && galaxyInstance.updatePlanet) {
         // Atualizar planeta existente
         galaxyInstance.updatePlanet(planetDataWithDefaults);
-        
         // Disparar evento para salvar imediatamente no cache
         GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_UPDATED);
-        
+
         // Chamar callback de conclusão
         if (onEditComplete) {
           onEditComplete();
@@ -100,10 +91,9 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
       } else if (galaxyInstance.addPlanet) {
         // Criar novo planeta
         galaxyInstance.addPlanet(planetDataWithDefaults);
-        
         // Disparar evento para salvar imediatamente no cache
         GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
-        
+
         // Check for planet in edit mode
         setTimeout(() => {
           checkPlanetInEditMode();
@@ -127,7 +117,6 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
 
       // Close dialog
       setOpen(false);
-    } else {
     }
   };
 
@@ -160,7 +149,7 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
     <>
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
-          <Button className="fixed bottom-3.5 left-3.5 z-20 p-2 px-4 text-lg">
+          <Button className="fixed bottom-3.5 left-3.5 z-20 p-2 px-4 text-[16px]">
             <Plus className="!w-5 !h-5" />
             <p>Adicionar planeta</p>
           </Button>
@@ -299,10 +288,9 @@ export function AddButton({ editingPlanet, onEditComplete }: AddButtonProps) {
                       onClick={() => setSelectedColor(color.name)}
                       className={`
                         py-5 px-3 rounded-md border text-amber-400 border-amber-500/30 transition-all duration-100 hover:bg-amber-500/15 cursor-pointer
-                        ${
-                          selectedColor === color.name
-                            ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
-                            : "hover:bg-amber-500/20"
+                        ${selectedColor === color.name
+                          ? "text-amber-400 bg-amber-500/20 border border-amber-500/30"
+                          : "hover:bg-amber-500/20"
                         }
                         ${color.text}
                       `}

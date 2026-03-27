@@ -1,17 +1,11 @@
-import { PlanetData } from "./galaxyComponent/objects/planet";
-
-interface PlanetLabelProps {
-  planet: PlanetData;
-  position: { x: number; y: number };
-  isVisible: boolean;
-}
+import { PlanetLabelProps } from "../../../ts/interfaces";
 
 export function PlanetLabel({ planet, position, isVisible }: PlanetLabelProps) {
   if (!isVisible) return null;
 
   // Verificar se a posição está dentro dos limites da tela
-  const isWithinScreen = position.x > 0 && position.x < window.innerWidth && 
-                        position.y > 0 && position.y < window.innerHeight;
+  const isWithinScreen = position.x > 0 && position.x < window.innerWidth &&
+    position.y > 0 && position.y < window.innerHeight;
 
   if (!isWithinScreen) return null;
 

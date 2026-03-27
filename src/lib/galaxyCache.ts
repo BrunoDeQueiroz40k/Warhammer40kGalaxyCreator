@@ -1,29 +1,4 @@
-import { ExportablePlanetData } from "./galaxyExport";
-
-// Schema de validação para planetas
-interface PlanetSchema {
-  name: string;
-  faction: string;
-  planetType: string;
-  description: string;
-  population: number;
-  status: "ativo" | "destruido";
-  image: string;
-  vrchatUrl: string;
-  color: string;
-  segmentum: string;
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-}
-
-interface GalaxyCacheData {
-  planets: ExportablePlanetData[];
-  timestamp: number;
-  sessionId: string;
-}
+import { ExportablePlanetData, GalaxyCacheData, PlanetSchema } from "../ts/interfaces";
 
 export class GalaxyCache {
   private static readonly CACHE_KEY = "galaxy-cache";
@@ -80,6 +55,15 @@ export class GalaxyCache {
   static hasConsent(): boolean {
     if (typeof window === "undefined") return false;
     return localStorage.getItem(this.CONSENT_KEY) === "accepted";
+  }
+
+  /**
+   * Fonte de verdade está migrando para o backend.
+   * Mantemos esse cache apenas como fallback/UX enquanto a integração completa
+   * estiver sendo finalizada.
+   */
+  static isBackendPreferred(): boolean {
+    return true;
   }
 
   static isCacheValid(): boolean {

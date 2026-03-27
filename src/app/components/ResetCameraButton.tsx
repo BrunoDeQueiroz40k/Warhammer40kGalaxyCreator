@@ -1,5 +1,6 @@
-import { Button } from "./ui/button";
 import { RefreshCcw } from "lucide-react";
+
+import { Button } from "./ui/button";
 import { GalaxyNavigator } from "../../lib/GalaxyNavigator";
 
 export function ResetCameraButton() {

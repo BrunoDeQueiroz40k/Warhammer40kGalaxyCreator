@@ -1,28 +1,16 @@
 import { useEffect, useCallback, useRef } from "react";
+
+import { CachePlanetData, GalaxyCacheDataProvider, PlanetEntry } from "../ts/interfaces";
+
+import { api } from "../lib/apiClient";
+import { readPlanets } from "../ts/functions";
 import { GalaxyCache } from "../lib/galaxyCache";
 import { GalaxyEvents } from "../lib/galaxyEvents";
-
-interface PlanetData {
-  name?: string;
-  faction?: string;
-  planetType?: string;
-  description?: string;
-  population?: number;
-  status?: string;
-  image?: string;
-  vrchatUrl?: string;
-  color?: string;
-  segmentum?: string;
-}
-
-interface Planet {
-  data: PlanetData;
-  position: { x: number; y: number; z: number };
-}
 
 export function useGalaxyCache() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string | null>(null);
+  const lastSavedBackendRef = useRef<string | null>(null);
 
   // Salvar galáxia no cache com debounce e otimização
   const saveGalaxy = useCallback(() => {
@@ -30,15 +18,10 @@ export function useGalaxyCache() {
 
     const galaxyInstance = (
       window as {
-        galaxyInstance?: {
-          getAllPlanetsData?: () => Planet[];
-          getPlanets?: () => Planet[];
-          clearAllPlanets?: () => void;
-          addPlanetWithoutEditMode?: (planetData: unknown) => void;
-        };
+        galaxyInstance?: GalaxyCacheDataProvider<PlanetEntry<CachePlanetData>>;
       }
     ).galaxyInstance;
-    
+
     if (!galaxyInstance) {
       console.log("GalaxyInstance não disponível para salvamento");
       return;
@@ -46,14 +29,10 @@ export function useGalaxyCache() {
 
     try {
       // Obter todos os planetas
-      const planets = galaxyInstance.getAllPlanetsData
-        ? galaxyInstance.getAllPlanetsData()
-        : galaxyInstance.getPlanets
-          ? galaxyInstance.getPlanets()
-          : [];
+      const planets = readPlanets(galaxyInstance);
 
       // Converter para formato exportável
-      const exportablePlanets = planets.map((planet: Planet) => ({
+      const exportablePlanets = planets.map((planet) => ({
         name: planet.data?.name || "",
         faction: planet.data?.faction || "",
         planetType: planet.data?.planetType || "",
@@ -81,10 +60,31 @@ export function useGalaxyCache() {
       const success = GalaxyCache.saveGalaxy(exportablePlanets);
       if (success) {
         lastSavedDataRef.current = currentData;
-        console.log(`Galáxia salva no cache: ${exportablePlanets.length} planetas`);
+        console.log(
+          `Galáxia salva no cache: ${exportablePlanets.length} planetas`
+        );
       } else {
         console.warn("Falha ao salvar galáxia no cache");
       }
+
+      // Também tentar persistir no backend (sem quebrar UX se não estiver logado)
+      void (async () => {
+        try {
+          if (lastSavedBackendRef.current === currentData) return;
+          await api.request("/snapshots", {
+            method: "POST",
+            body: JSON.stringify({
+              payload: {
+                planets: exportablePlanets,
+                savedAt: new Date().toISOString(),
+              },
+            }),
+          });
+          lastSavedBackendRef.current = currentData;
+        } catch {
+          // ignore
+        }
+      })();
     } catch (error) {
       console.error("Erro ao salvar galáxia:", error);
     }
@@ -104,15 +104,10 @@ export function useGalaxyCache() {
 
     const galaxyInstance = (
       window as {
-        galaxyInstance?: {
-          getAllPlanetsData?: () => Planet[];
-          getPlanets?: () => Planet[];
-          clearAllPlanets?: () => void;
-          addPlanetWithoutEditMode?: (planetData: unknown) => void;
-        };
+        galaxyInstance?: GalaxyCacheDataProvider<PlanetEntry<CachePlanetData>>;
       }
     ).galaxyInstance;
-    
+
     if (!galaxyInstance) {
       console.log("GalaxyInstance não está disponível ainda, tentando novamente...");
       return false;
@@ -122,7 +117,7 @@ export function useGalaxyCache() {
       const cachedPlanets = GalaxyCache.loadGalaxy();
       if (cachedPlanets && cachedPlanets.length > 0) {
         console.log(`Carregando ${cachedPlanets.length} planetas do cache...`);
-        
+
         // Limpar planetas existentes
         if (galaxyInstance.clearAllPlanets) {
           galaxyInstance.clearAllPlanets();
@@ -191,14 +186,14 @@ export function useGalaxyCache() {
     const tryLoadGalaxy = () => {
       attempts++;
       console.log(`Tentativa ${attempts}/${maxAttempts} de carregar galáxia do cache...`);
-      
+
       const success = loadGalaxy();
-      
+
       if (success) {
         console.log("Galáxia carregada do cache com sucesso!");
         return;
       }
-      
+
       if (attempts < maxAttempts) {
         setTimeout(tryLoadGalaxy, attemptInterval);
       } else {

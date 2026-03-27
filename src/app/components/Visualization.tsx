@@ -1,17 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Eye, X } from "lucide-react";
-import { Checkbox } from "./ui/checkbox";
-import { Label } from "./ui/label";
 
-interface VisualizationProps {
-  showSegmentums: boolean;
-  onToggleSegmentums: (show: boolean) => void;
-  showPlanetNames: boolean;
-  onTogglePlanetNames: (show: boolean) => void;
-}
+import { Eye, X } from "lucide-react";
+
+import { VisualizationProps } from "../../ts/interfaces";
+
+import { Label } from "./ui/label";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
 
 export function Visualization({
   showSegmentums,
@@ -32,11 +29,10 @@ export function Visualization({
         </Button>
       )}
       <div
-        className={`fixed bottom-30.5 right-3.5 z-50 bg-black/90 border border-amber-500/30 rounded-lg text-white pointer-events-auto transform transition-all duration-500 ease-out ${
-          isOpen
-            ? "w-68 p-4 opacity-100 scale-100"
-            : "w-12 h-12 p-2 opacity-0 scale-0"
-        }`}
+        className={`fixed bottom-30.5 right-3.5 z-50 bg-black/90 border border-amber-500/30 rounded-lg text-white pointer-events-auto transform transition-all duration-500 ease-out ${isOpen
+          ? "w-68 p-4 opacity-100 scale-100"
+          : "w-12 h-12 p-2 opacity-0 scale-0"
+          }`}
       >
         {!isOpen && (
           <div className="w-full h-full flex items-center justify-center">

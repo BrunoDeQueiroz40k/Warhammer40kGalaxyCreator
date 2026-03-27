@@ -1,6 +1,8 @@
-import { Button } from "./ui/button";
 import * as Dialog from "@radix-ui/react-dialog";
+
 import { CircleQuestionMark } from "lucide-react";
+
+import { Button } from "./ui/button";
 
 export function HelpButton() {
   return (

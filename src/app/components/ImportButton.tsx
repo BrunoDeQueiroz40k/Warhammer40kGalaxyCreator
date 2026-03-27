@@ -1,3 +1,8 @@
+import { useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+
+import { Upload, Warning, CheckCircle, XCircle } from "@phosphor-icons/react";
+
 import {
   Tooltip,
   TooltipContent,
@@ -5,9 +10,6 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { Button } from "./ui/button";
-import * as Dialog from "@radix-ui/react-dialog";
-import { Upload, Warning, CheckCircle, XCircle } from "@phosphor-icons/react";
-import { useRef, useState } from "react";
 import { GalaxyExporter } from "../../lib/galaxyExport";
 
 export function ImportButton() {

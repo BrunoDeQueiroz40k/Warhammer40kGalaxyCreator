@@ -1,18 +1,6 @@
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { PlanetData } from "../app/components/galaxyComponent/objects/planet";
-
-export interface ExportablePlanetData extends PlanetData {
-  color?: string;
-  segmentum?: string;
-  vrchatUrl?: string;
-}
-
-export interface GalaxyExportData {
-  planets: ExportablePlanetData[];
-  exportDate: string;
-  version: string;
-}
+import { ExportablePlanetData, GalaxyExportData } from "../ts/interfaces";
 
 export class GalaxyExporter {
   private static readonly VERSION = "1.0.0";

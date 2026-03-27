@@ -2,13 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-interface LoadingProps {
-   size?: number; // Tamanho base (calcula width e height automaticamente)
-   width?: number; // Largura do canvas (sobrescreve o cálculo automático)
-   height?: number; // Altura do canvas (sobrescreve o cálculo automático)
-   animationSpeed?: number; // Velocidade da animação (pixels por frame)
-   className?: string; // Classes CSS adicionais
-}
+import { LoadingProps } from "../../ts/interfaces";
 
 export function Loading({
    size,

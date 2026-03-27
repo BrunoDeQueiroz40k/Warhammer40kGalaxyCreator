@@ -1,21 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loading } from "./Loading";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
-// Array de backgrounds disponíveis - adicione mais números aqui conforme adicionar imagens
-const availableBackgrounds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+import { useAnimatedBackground } from "../../hooks/useAnimatedBackground";
 
-interface LoadingScreenProps {
-  size?: number;
-  width?: number;
-  height?: number;
-  animationSpeed?: number;
-  message?: string;
-  progress?: number;
-  className?: string;
-}
+import { LoadingScreenProps } from "../../ts/interfaces";
+
+import { Loading } from "./Loading";
 
 export function LoadingScreen({
   size,
@@ -27,8 +19,7 @@ export function LoadingScreen({
   className = "",
 }: LoadingScreenProps) {
   const [currentQuote, setCurrentQuote] = useState({ quote: "", author: "" });
-  const [currentBackground, setCurrentBackground] = useState(1);
-  const [showBackground, setShowBackground] = useState(false);
+  const { showBackground, currentBackground } = useAnimatedBackground();
 
   useEffect(() => {
     const warhammerQuotes = [
@@ -72,24 +63,6 @@ export function LoadingScreen({
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    // Selecionar background aleatório apenas no cliente
-    const randomInitialBackground =
-      availableBackgrounds[
-      Math.floor(Math.random() * availableBackgrounds.length)
-      ];
-    setCurrentBackground(randomInitialBackground);
-
-    // Mostrar background após um pequeno delay para evitar flash
-    const timer = setTimeout(() => {
-      setShowBackground(true);
-    }, 50);
-
-    return () => {
-      clearTimeout(timer);
-    };
   }, []);
 
   return (

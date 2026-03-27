@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { SelectItemProps, SelectTriggerProps } from "@/ts/interfaces"
 
 import { cn } from "@/lib/utils"
 
@@ -42,10 +43,6 @@ const Select = ({ children, onValueChange, ...props }: React.ComponentPropsWitho
 const SelectGroup = SelectPrimitive.Group
 
 const SelectValue = SelectPrimitive.Value
-
-interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
-   placeholderIcon?: React.ReactNode;
-}
 
 const SelectTrigger = React.forwardRef<
    React.ElementRef<typeof SelectPrimitive.Trigger>,
@@ -155,10 +152,6 @@ const SelectLabel = React.forwardRef<
    />
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
-
-interface SelectItemProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> {
-   icon?: React.ReactNode;
-}
 
 const SelectItem = React.forwardRef<
    React.ElementRef<typeof SelectPrimitive.Item>,

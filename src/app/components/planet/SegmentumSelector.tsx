@@ -1,3 +1,5 @@
+import { SegmentumSelectorProps } from "../../../ts/interfaces";
+
 export interface Segmentum {
   id: string;
   name: string;
@@ -58,11 +60,6 @@ const segmentumTextSizes: Record<string, number> = {
   obscurus: 65,
   ultima: 75,
 };
-
-interface SegmentumSelectorProps {
-  selectedSegmentum: string | null;
-  onSegmentumSelect: (segmentumId: string) => void;
-}
 
 export function SegmentumSelector({
   selectedSegmentum,

@@ -1,20 +1,12 @@
-import { useState, useRef } from "react";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { X, Image as ImageIcon, RotateCcw } from "lucide-react";
 import Image from "next/image";
+import { useState, useRef } from "react";
 
-interface ImageUploadProps {
-   value?: string;
-   onChange: (imageData: string | null) => void;
-   label?: string;
-}
+import { X, Image as ImageIcon, RotateCcw } from "lucide-react";
 
-interface ImagePosition {
-   x: number;
-   y: number;
-   scale: number;
-}
+import { ImageUploadProps, ImagePosition } from "../../../ts/interfaces";
+
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 
 export function ImageUpload({ value, onChange, label = "Imagem" }: ImageUploadProps) {
    const [preview, setPreview] = useState<string | null>(value || null);

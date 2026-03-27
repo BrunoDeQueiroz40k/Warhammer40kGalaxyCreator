@@ -1,60 +1,32 @@
 import { useState, useEffect, useRef } from "react";
-import { Input } from "./ui/input";
-import { Search, X, List } from "lucide-react";
-import { Badge } from "./ui/badge";
-import { GalaxyNavigator } from "../../lib/GalaxyNavigator";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Button } from "./ui/button";
 
-interface Planet {
-  data: {
-    name: string;
-    faction: string;
-    planetType: string;
-    description: string;
-    population: number;
-    status: string;
-    color: string;
-    segmentum: string;
-  };
-  position: { x: number; y: number; z: number };
-}
+import { Search, X, List } from "lucide-react";
 
-interface SearchResult {
-  planet: Planet;
-  matchScore: number;
-  matchType: "name" | "faction" | "type" | "description";
-}
+import { PlanetEntry, PlanetSummaryData, SearchResult } from "../../../ts/interfaces";
+import { getFactionVariant, getWindowGalaxyProvider, readPlanets } from "../../../ts/functions";
+
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { GalaxyNavigator } from "../../../lib/GalaxyNavigator";
 
 export function PlanetList() {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [allPlanets, setAllPlanets] = useState<Planet[]>([]);
+  const [allPlanets, setAllPlanets] = useState<PlanetEntry<PlanetSummaryData>[]>([]);
   const [filteredPlanets, setFilteredPlanets] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Obter todos os planetas
-  const getAllPlanets = (): Planet[] => {
+  const getAllPlanets = (): PlanetEntry<PlanetSummaryData>[] => {
     if (typeof window === "undefined") return [];
 
-    const galaxyInstance = (
-      window as {
-        galaxyInstance?: {
-          getAllPlanetsData?: () => Planet[];
-          getPlanets?: () => Planet[];
-        };
-      }
-    ).galaxyInstance;
+    const galaxyInstance = getWindowGalaxyProvider<PlanetEntry<PlanetSummaryData>>();
     if (!galaxyInstance) return [];
 
     try {
-      const planets = galaxyInstance.getAllPlanetsData
-        ? galaxyInstance.getAllPlanetsData()
-        : galaxyInstance.getPlanets
-          ? galaxyInstance.getPlanets()
-          : [];
-      return planets;
+      return readPlanets(galaxyInstance);
     } catch (error) {
       console.error("Erro ao obter planetas:", error);
       return [];
@@ -176,42 +148,10 @@ export function PlanetList() {
     searchRef.current?.focus();
   };
 
-  const handlePlanetClick = (planet: Planet) => {
+  const handlePlanetClick = (planet: PlanetEntry<PlanetSummaryData>) => {
     GalaxyNavigator.navigateToPlanet(planet);
     setOpen(false);
     setSelectedIndex(-1);
-  };
-
-  const getFactionBadgeVariant = (
-    faction: string
-  ):
-    | "normal"
-    | "imperium"
-    | "necrons"
-    | "caos"
-    | "orks"
-    | "xenos"
-    | "tau"
-    | "aeldari"
-    | "dark_eldar" => {
-    switch (faction) {
-      case "Imperium":
-        return "imperium";
-      case "Necrons":
-        return "necrons";
-      case "Caos":
-        return "caos";
-      case "Orks":
-        return "orks";
-      case "Xenos":
-        return "xenos";
-      case "Tau":
-        return "tau";
-      case "Aeldari":
-        return "aeldari";
-      default:
-        return "normal";
-    }
   };
 
   return (
@@ -280,7 +220,7 @@ export function PlanetList() {
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <Badge
-                              variant={getFactionBadgeVariant(
+                              variant={getFactionVariant(
                                 result.planet.data?.faction
                               )}
                               className="px-2 py-1 text-xs"

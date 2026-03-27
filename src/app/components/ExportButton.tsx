@@ -1,3 +1,11 @@
+import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+
+import { Download, CheckCircle, XCircle } from "@phosphor-icons/react";
+
+import { ExportablePlanetData, PlanetEntry } from "../../ts/interfaces";
+import { getWindowGalaxyProvider, readPlanets } from "../../ts/functions";
+
 import {
   Tooltip,
   TooltipContent,
@@ -5,15 +13,8 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { Button } from "./ui/button";
-import * as Dialog from "@radix-ui/react-dialog";
-import { Download, CheckCircle, XCircle } from "@phosphor-icons/react";
-import { useState } from "react";
-import { GalaxyExporter, ExportablePlanetData } from "../../lib/galaxyExport";
-
-interface Planet {
-  data: ExportablePlanetData;
-  position: { x: number; y: number; z: number };
-}
+import { api } from "../../lib/apiClient";
+import { GalaxyExporter } from "../../lib/galaxyExport";
 
 export function ExportButton() {
   const [showResultDialog, setShowResultDialog] = useState(false);
@@ -23,14 +24,7 @@ export function ExportButton() {
   const handleExportClick = async () => {
     try {
       // Acessar a instância da galáxia
-      const galaxyInstance = (
-        window as {
-          galaxyInstance?: {
-            getAllPlanetsData?: () => Planet[];
-            getPlanets?: () => Planet[];
-          };
-        }
-      ).galaxyInstance;
+      const galaxyInstance = getWindowGalaxyProvider<PlanetEntry<ExportablePlanetData>>();
 
       if (!galaxyInstance) {
         setResultMessage("Erro: Instância da galáxia não encontrada");
@@ -40,11 +34,7 @@ export function ExportButton() {
       }
 
       // Obter todos os planetas usando o método correto
-      const planets = galaxyInstance.getAllPlanetsData
-        ? galaxyInstance.getAllPlanetsData()
-        : galaxyInstance.getPlanets
-          ? galaxyInstance.getPlanets()
-          : [];
+      const planets = readPlanets(galaxyInstance);
 
       if (planets.length === 0) {
         setResultMessage("Nenhum planeta encontrado para exportar");
@@ -55,7 +45,7 @@ export function ExportButton() {
 
       // Converter planetas para formato exportável
       const exportablePlanets: ExportablePlanetData[] = planets.map(
-        (planet: Planet) => ({
+        (planet) => ({
           name: planet.data?.name || "",
           faction: planet.data?.faction || "",
           planetType: planet.data?.planetType || "",
@@ -76,6 +66,33 @@ export function ExportButton() {
 
       // Exportar galáxia
       await GalaxyExporter.exportGalaxy(exportablePlanets);
+
+      // Persistir snapshot/histórico no backend (se logado)
+      try {
+        const { snapshot } = await api.request<{ snapshot: { id: string } }>(
+          "/snapshots",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              payload: {
+                planets: exportablePlanets,
+                exportDate: new Date().toISOString(),
+                version: "1.0.0",
+              },
+            }),
+          }
+        );
+        await api.request("/downloads", {
+          method: "POST",
+          body: JSON.stringify({
+            fileName: "galaxy_export.zip",
+            format: "zip",
+            snapshotId: snapshot.id,
+          }),
+        });
+      } catch {
+        // Usuário pode não estar logado ainda; export local continua funcionando.
+      }
 
       setResultMessage(
         `Galáxia exportada com sucesso! ${exportablePlanets.length} planetas exportados.`

@@ -1,28 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Input } from "./ui/input";
+
 import { Search, X, MapPin, Users, Zap } from "lucide-react";
-import { Badge } from "./ui/badge";
-import { GalaxyNavigator } from "../../lib/GalaxyNavigator";
 
-interface Planet {
-  data: {
-    name: string;
-    faction: string;
-    planetType: string;
-    description: string;
-    population: number;
-    status: string;
-    color: string;
-    segmentum: string;
-  };
-  position: { x: number; y: number; z: number };
-}
+import { PlanetEntry, SearchResult, PlanetSummaryData } from "../../../ts/interfaces";
+import { getFactionVariant, getWindowGalaxyProvider, readPlanets } from "../../../ts/functions";
 
-interface SearchResult {
-  planet: Planet;
-  matchScore: number;
-  matchType: "name" | "faction" | "type" | "description";
-}
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { GalaxyNavigator } from "../../../lib/GalaxyNavigator";
 
 export function SearchInput() {
   const [searchValue, setSearchValue] = useState("");
@@ -33,26 +18,14 @@ export function SearchInput() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Obter todos os planetas
-  const getAllPlanets = (): Planet[] => {
+  const getAllPlanets = (): PlanetEntry<PlanetSummaryData>[] => {
     if (typeof window === "undefined") return [];
 
-    const galaxyInstance = (
-      window as {
-        galaxyInstance?: {
-          getAllPlanetsData?: () => Planet[];
-          getPlanets?: () => Planet[];
-        };
-      }
-    ).galaxyInstance;
+    const galaxyInstance = getWindowGalaxyProvider<PlanetEntry<PlanetSummaryData>>();
     if (!galaxyInstance) return [];
 
     try {
-      const planets = galaxyInstance.getAllPlanetsData
-        ? galaxyInstance.getAllPlanetsData()
-        : galaxyInstance.getPlanets
-          ? galaxyInstance.getPlanets()
-          : [];
-      return planets;
+      return readPlanets(galaxyInstance);
     } catch (error) {
       console.error("Error getting all planets:", error);
       return [];
@@ -199,7 +172,7 @@ export function SearchInput() {
     setShowResults(true);
   };
 
-  const handleResultClick = (planet: Planet) => {
+  const handleResultClick = (planet: PlanetEntry<PlanetSummaryData>) => {
     GalaxyNavigator.navigateToPlanet(planet);
     setSearchValue("");
     setShowResults(false);
@@ -216,38 +189,6 @@ export function SearchInput() {
         return <Zap className="w-4 h-4" />;
       default:
         return <Search className="w-4 h-4" />;
-    }
-  };
-
-  const getFactionBadgeVariant = (
-    faction: string
-  ):
-    | "normal"
-    | "imperium"
-    | "necrons"
-    | "caos"
-    | "orks"
-    | "xenos"
-    | "tau"
-    | "aeldari"
-    | "dark_eldar" => {
-    switch (faction) {
-      case "Imperium":
-        return "imperium";
-      case "Necrons":
-        return "necrons";
-      case "Caos":
-        return "caos";
-      case "Orks":
-        return "orks";
-      case "Xenos":
-        return "xenos";
-      case "Tau":
-        return "tau";
-      case "Aeldari":
-        return "aeldari";
-      default:
-        return "normal";
     }
   };
 
@@ -294,7 +235,7 @@ export function SearchInput() {
                     </div>
                     <div className="text-slate-300 text-xs truncate flex items-center gap-2">
                       <Badge
-                        variant={getFactionBadgeVariant(
+                          variant={getFactionVariant(
                           result.planet.data?.faction
                         )}
                         className="px-1.5 py-0.5 text-[10px]"

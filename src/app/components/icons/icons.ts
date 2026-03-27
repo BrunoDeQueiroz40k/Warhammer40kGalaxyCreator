@@ -1,6 +1,6 @@
-import { PlanetIcon } from "@phosphor-icons/react";
 import { MdHive } from "react-icons/md";
 import { IoIosCog } from "react-icons/io";
+import { PlanetIcon } from "@phosphor-icons/react";
 import { FaWheatAwn, FaChurch, FaTransgender, FaFortAwesome } from "react-icons/fa6";
 import { GiJungle, GiBattleTank, GiBlackKnightHelm, GiGraveyard, GiBattleGear, GiHastyGrave } from "react-icons/gi";
 

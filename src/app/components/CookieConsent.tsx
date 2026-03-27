@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "./ui/button";
+
 import { X } from "lucide-react";
+
+import { Button } from "./ui/button";
 
 export function CookieConsent() {
   const [showConsent, setShowConsent] = useState(false);

@@ -1,23 +1,14 @@
-import { useState, useEffect } from "react";
-import { ExternalLink, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { Loading } from "./Loading";
+import { useState, useEffect } from "react";
 
-interface LinkPreviewProps {
-  url: string;
-  className?: string;
-}
+import { ExternalLink, AlertCircle } from "lucide-react";
 
-interface PreviewData {
-  title: string;
-  description: string;
-  image: string;
-  favicon: string;
-  url: string;
-  domain: string;
-}
+import { PreviewData, LinkPreviewProps } from "../../../ts/interfaces";
+
+import { Loading } from "../Loading";
 
 export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +21,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
       const urlObj = new URL(url);
       // Se for uma URL externa, usar nosso proxy
       if (urlObj.hostname !== window.location.hostname) {
-        return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+        return `${apiBase}/public/image-proxy?url=${encodeURIComponent(url)}`;
       }
       return url;
     } catch {
@@ -67,7 +58,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
 
         try {
           const response = await fetch(
-            `/api/preview?url=${encodeURIComponent(url)}`
+            `${apiBase}/public/preview?url=${encodeURIComponent(url)}`
           );
 
           if (!response.ok) {
@@ -94,7 +85,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
     }, 500); // Aguarda 500ms após parar de digitar
 
     return () => clearTimeout(timeoutId);
-  }, [url]);
+  }, [url, apiBase]);
 
   if (!url) return null;
 

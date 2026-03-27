@@ -1,67 +1,16 @@
-import { PlanetData } from "./galaxyComponent/objects/planet";
-import { Badge, badgeVariants } from "./ui/badge";
-import { VariantProps } from "class-variance-authority";
 import { ExternalLink } from "lucide-react";
-import { LinkPreview } from "./LinkPreview";
 
-interface PreviewProps {
-  planetData: PlanetData;
-  selectedColor: string;
-  selectedSegmentum: string | null;
-}
+import { PreviewProps } from "../../../ts/interfaces";
+import { formatPopulation, getFactionVariant } from "../../../ts/functions";
+
+import { Badge } from "../ui/badge";
+import { LinkPreview } from "./LinkPreview";
 
 export function Preview({
   planetData,
   selectedColor,
   selectedSegmentum,
 }: PreviewProps) {
-  // Função para formatar população
-  const formatPopulation = (value: number): string => {
-    if (value === 0) return "0";
-
-    const absValue = Math.abs(value);
-
-    if (absValue >= 1e12) {
-      const trillions = Math.floor(absValue / 1e12);
-      return trillions === 1 ? "1 trilhão" : `${trillions} trilhões`;
-    } else if (absValue >= 1e9) {
-      const billions = Math.floor(absValue / 1e9);
-      return billions === 1 ? "1 bilhão" : `${billions} bilhões`;
-    } else if (absValue >= 1e6) {
-      const millions = Math.floor(absValue / 1e6);
-      return millions === 1 ? "1 milhão" : `${millions} milhões`;
-    } else if (absValue >= 1e3) {
-      const thousands = Math.floor(absValue / 1e3);
-      return `${thousands} mil`;
-    } else {
-      return value.toString();
-    }
-  };
-
-  // Função para mapear facções para variantes do badge
-  const getFactionVariant = (
-    faction: string
-  ): VariantProps<typeof badgeVariants>["variant"] => {
-    switch (faction) {
-      case "Imperium":
-        return "imperium";
-      case "Necrons":
-        return "necrons";
-      case "Caos":
-        return "caos";
-      case "Orks":
-        return "orks";
-      case "Xenos":
-        return "xenos";
-      case "Tau":
-        return "tau";
-      case "Aeldari":
-        return "aeldari";
-      default:
-        return "normal";
-    }
-  };
-
   return (
     <div className="space-y-2">
       <p className="text-white font-bold text-lg">PREVIEW DO PLANETA</p>
@@ -109,8 +58,8 @@ export function Preview({
                 <p className="text-slate-400 font-bold text-xs">STATUS</p>
                 <p
                   className={`font-bold ${planetData.status === "destruido"
-                      ? "text-red-500"
-                      : "text-green-500"
+                    ? "text-red-500"
+                    : "text-green-500"
                     }`}
                 >
                   {planetData.status === "destruido" ? "Destruído" : "Ativo"}

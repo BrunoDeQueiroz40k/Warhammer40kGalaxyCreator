@@ -1,18 +1,13 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { LinkPreview } from "./LinkPreview";
-import { Badge, badgeVariants } from "./ui/badge";
-import { VariantProps } from "class-variance-authority";
-import { X, PencilLine, ExternalLink } from "lucide-react";
-import { PlanetData } from "./galaxyComponent/objects/planet";
 
-interface PlanetCardProps {
-  planet: PlanetData;
-  position: { x: number; y: number }; // Posição na tela onde o card deve aparecer
-  onClose: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
-}
+import { X, PencilLine, ExternalLink } from "lucide-react";
+
+import { PlanetCardProps } from "../../../ts/interfaces";
+import { formatPopulation, getFactionVariant } from "../../../ts/functions";
+
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { LinkPreview } from "./LinkPreview";
 
 export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
   const [isVisible, setIsVisible] = useState(true);
@@ -20,53 +15,6 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 300);
-  };
-
-  // Função para formatar população
-  const formatPopulation = (value: number): string => {
-    if (value === 0) return "0";
-
-    const absValue = Math.abs(value);
-
-    if (absValue >= 1e12) {
-      const trillions = Math.floor(absValue / 1e12);
-      return trillions === 1 ? "1 trilhão" : `${trillions} trilhões`;
-    } else if (absValue >= 1e9) {
-      const billions = Math.floor(absValue / 1e9);
-      return billions === 1 ? "1 bilhão" : `${billions} bilhões`;
-    } else if (absValue >= 1e6) {
-      const millions = Math.floor(absValue / 1e6);
-      return millions === 1 ? "1 milhão" : `${millions} milhões`;
-    } else if (absValue >= 1e3) {
-      const thousands = Math.floor(absValue / 1e3);
-      return `${thousands} mil`;
-    } else {
-      return value.toString();
-    }
-  };
-
-  // Função para mapear facções para variantes do badgeF
-  const getFactionVariant = (
-    faction: string
-  ): VariantProps<typeof badgeVariants>["variant"] => {
-    switch (faction) {
-      case "Imperium":
-        return "imperium"; // Azul
-      case "Necrons":
-        return "necrons"; // Cinza
-      case "Caos":
-        return "caos"; // Vermelho
-      case "Orks":
-        return "orks"; // Verde
-      case "Xenos":
-        return "xenos"; // Cinza
-      case "Tau":
-        return "tau"; // Azul
-      case "Aeldari":
-        return "aeldari"; // Verde
-      default:
-        return "normal"; // Cinza padrão
-    }
   };
 
   return (

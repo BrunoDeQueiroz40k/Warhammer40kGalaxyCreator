@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { PlanetCard } from "../PlanetCard";
-import { PlanetLabel } from "../PlanetLabel";
+import { PlanetCard } from "../planet/PlanetCard";
+import { PlanetLabel } from "../planet/PlanetLabel";
 import { Planet } from "./objects/planet";
 import * as THREE from "three";
 
