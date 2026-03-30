@@ -2,12 +2,21 @@
 
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 type RegisterFormProps = {
   name: string;
   email: string;
   password: string;
   faction: string;
+  subFaction: string;
   chapter: string;
   error: string | null;
   isSubmitting: boolean;
@@ -16,9 +25,43 @@ type RegisterFormProps = {
   onChangeEmail: (value: string) => void;
   onChangePassword: (value: string) => void;
   onChangeFaction: (value: string) => void;
+  onChangeSubFaction: (value: string) => void;
   onChangeChapter: (value: string) => void;
   onSubmit: () => void;
   onSwitchToLogin: () => void;
+};
+
+const FACTIONS = [
+  "Imperium",
+  "Necrons",
+  "Caos",
+  "Orks",
+  "Xenos",
+  "Aeldari",
+  "Tau",
+] as const;
+
+const SUB_FACTIONS_BY_FACTION: Record<string, string[]> = {
+  Imperium: [
+    "Space Marines",
+    "Astra Militarum",
+    "Krieg",
+    "Adepta Sororitas",
+    "Adeptus Mechanicus",
+    "Inquisition",
+  ],
+  Caos: [
+    "Chaos Space Marines",
+    "Death Guard",
+    "Thousand Sons",
+    "World Eaters",
+    "Chaos Daemons",
+  ],
+  Xenos: ["Tyranids", "Genestealer Cults", "Drukhari", "Leagues of Votann"],
+  Necrons: ["Sautekh Dynasty", "Nihilakh Dynasty", "Novokh Dynasty"],
+  Orks: ["Goffs", "Bad Moons", "Evil Sunz", "Deathskulls"],
+  Aeldari: ["Craftworlds", "Harlequins", "Ynnari"],
+  Tau: ["T'au Sept", "Vior'la Sept", "Bork'an Sept", "Farsight Enclaves"],
 };
 
 export function RegisterForm({
@@ -26,6 +69,7 @@ export function RegisterForm({
   email,
   password,
   faction,
+  subFaction,
   chapter,
   error,
   isSubmitting,
@@ -34,48 +78,120 @@ export function RegisterForm({
   onChangeEmail,
   onChangePassword,
   onChangeFaction,
+  onChangeSubFaction,
   onChangeChapter,
   onSubmit,
   onSwitchToLogin,
 }: RegisterFormProps) {
   return (
-    <div>
-      <h2 className="text-white text-2xl font-semibold mb-1">Crie sua conta</h2>
-      <div className="space-y-2">
-        <Input
-          placeholder="nome"
-          value={name}
-          onChange={(e) => onChangeName(e.target.value)}
-          className="h-8 text-xs bg-black/40 border-amber-500/20 text-slate-100"
-        />
-        <Input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => onChangeEmail(e.target.value)}
-          className="h-8 text-xs bg-black/40 border-amber-500/20 text-slate-100"
-        />
-        <Input
-          type="password"
-          placeholder="senha (min 8)"
-          value={password}
-          onChange={(e) => onChangePassword(e.target.value)}
-          className="h-8 text-xs bg-black/40 border-amber-500/20 text-slate-100"
-        />
-        <div className="grid grid-cols-2 gap-2">
+    <div className="py-4">
+      <h2 className="text-white text-2xl font-semibold mb-8 text-center">Crie sua conta</h2>
+      <div className="space-y-3">
+        <div>
+          <Label>Nome</Label>
           <Input
-            placeholder="facção"
-            value={faction}
-            onChange={(e) => onChangeFaction(e.target.value)}
-            className="h-8 text-xs bg-black/40 border-amber-500/20 text-slate-100"
-          />
-          <Input
-            placeholder="capítulo"
-            value={chapter}
-            onChange={(e) => onChangeChapter(e.target.value)}
-            className="h-8 text-xs bg-black/40 border-amber-500/20 text-slate-100"
+            value={name}
+            onChange={(e) => onChangeName(e.target.value)}
           />
         </div>
+        <div>
+          <Label>E-mail</Label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => onChangeEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Senha</Label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => onChangePassword(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Facção</Label>
+            <Select
+              value={faction}
+              onValueChange={(value) => {
+                onChangeFaction(value);
+                onChangeSubFaction("");
+                onChangeChapter("");
+              }}
+            >
+              <SelectTrigger className="w-full mb-0">
+                <SelectValue placeholder="Selecione a facção" />
+              </SelectTrigger>
+              <SelectContent className="z-[250]">
+                {FACTIONS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Sub-facção</Label>
+            {faction ? (
+              <Select
+                value={subFaction}
+                onValueChange={(value) => {
+                  onChangeSubFaction(value);
+                  onChangeChapter("");
+                }}
+              >
+                <SelectTrigger className="w-full mb-0">
+                  <SelectValue placeholder="sub-facção" />
+                </SelectTrigger>
+                <SelectContent className="z-[250]">
+                  {(SUB_FACTIONS_BY_FACTION[faction] ?? []).map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value=""
+                readOnly
+                placeholder="Escolha a facção primeiro"
+                className="mb-0 opacity-60"
+              />
+            )}
+          </div>
+        </div>
+        {subFaction === "Space Marines" && (
+          <div>
+            <Label>Capítulo</Label>
+            <Select value={chapter} onValueChange={onChangeChapter}>
+              <SelectTrigger className="w-full mb-0">
+                <SelectValue placeholder="Selecione o capítulo" />
+              </SelectTrigger>
+              <SelectContent className="z-[250]">
+                {[
+                  "Ultramarines",
+                  "Blood Angels",
+                  "Dark Angels",
+                  "Space Wolves",
+                  "Imperial Fists",
+                  "Salamanders",
+                  "Raven Guard",
+                  "White Scars",
+                  "Black Templars",
+                  "Deathwatch",
+                ].map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -86,20 +202,21 @@ export function RegisterForm({
 
       <Button
         variant="accept"
-        className="w-full mt-3 h-8 text-xs"
+        className="w-full mt-6 h-8 text-xs"
         onClick={onSubmit}
         disabled={!canSubmit || isSubmitting}
       >
         {isSubmitting ? "Criando..." : "Criar conta"}
       </Button>
-
-      <button
-        type="button"
-        onClick={onSwitchToLogin}
-        className="text-[10px] text-slate-300 underline mt-3 hover:text-amber-200 transition"
-      >
-        já tenho uma conta
-      </button>
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className="text-[11px] text-slate-300 underline mt-6 hover:text-amber-200 transition cursor-pointer"
+        >
+          já tenho uma conta
+        </button>
+      </div>
     </div>
   );
 }

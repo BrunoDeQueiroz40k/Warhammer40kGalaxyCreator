@@ -1,91 +1,16 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
 
 import { ExternalLink, AlertCircle } from "lucide-react";
 
-import { PreviewData, LinkPreviewProps } from "../../../ts/interfaces";
+import { LinkPreviewProps } from "../../../ts/interfaces";
+import { getHostnameFromUrl } from "../../../ts/functions";
+import { buildProxyImageUrl } from "../../../lib/previewApi";
+import { useLinkPreview } from "../../../hooks/useLinkPreview";
 
 import { Loading } from "../Loading";
 
 export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Função para processar URL da imagem
-  const processImageUrl = (url: string) => {
-    if (!url) return "";
-
-    try {
-      const urlObj = new URL(url);
-      // Se for uma URL externa, usar nosso proxy
-      if (urlObj.hostname !== window.location.hostname) {
-        return `${apiBase}/public/image-proxy?url=${encodeURIComponent(url)}`;
-      }
-      return url;
-    } catch {
-      return url;
-    }
-  };
-
-  // Função para extrair hostname de forma segura
-  const getHostname = (url: string) => {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url; // Retorna a URL original se for inválida
-    }
-  };
-
-  useEffect(() => {
-    if (!url) return;
-
-    // Validar URL antes de fazer fetch
-    try {
-      new URL(url);
-    } catch {
-      setError("URL inválida");
-      setLoading(false);
-      return;
-    }
-
-    // Debounce para evitar muitas requisições
-    const timeoutId = setTimeout(() => {
-      const fetchPreview = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-          const response = await fetch(
-            `${apiBase}/public/preview?url=${encodeURIComponent(url)}`
-          );
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (data.error) {
-            throw new Error(data.error);
-          }
-
-          setPreviewData(data);
-        } catch (err) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load preview"
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchPreview();
-    }, 500); // Aguarda 500ms após parar de digitar
-
-    return () => clearTimeout(timeoutId);
-  }, [url, apiBase]);
+  const { previewData, loading, error } = useLinkPreview(url);
 
   if (!url) return null;
 
@@ -123,7 +48,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
                 <Image
                   width={16}
                   height={16}
-                  src={processImageUrl(previewData.favicon)}
+                  src={buildProxyImageUrl(previewData.favicon)}
                   alt=""
                   className="w-4 h-4 flex-shrink-0"
                   onError={(e) => {
@@ -132,7 +57,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
                 />
               )}
               <span className="truncate">
-                {previewData?.domain || getHostname(url)}
+                {previewData?.domain || getHostnameFromUrl(url)}
               </span>
               <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-200 flex-shrink-0" />
             </div>
@@ -151,7 +76,7 @@ export function LinkPreview({ url, className = "" }: LinkPreviewProps) {
               <Image
                 width={128}
                 height={72}
-                src={processImageUrl(previewData.image)}
+                src={buildProxyImageUrl(previewData.image)}
                 alt={previewData.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 onError={(e) => {

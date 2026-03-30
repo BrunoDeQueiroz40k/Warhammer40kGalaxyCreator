@@ -55,3 +55,27 @@ export function getWindowGalaxyProvider<T>(): GalaxyDataProvider<T> | null {
   if (typeof window === "undefined") return null;
   return (window as { galaxyInstance?: GalaxyDataProvider<T> }).galaxyInstance ?? null;
 }
+
+export async function fileToBase64(file: File): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Falha ao ler imagem."));
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export function formatDateTime(value: string): string {
+  return new Date(value).toLocaleString();
+}
+
+export function getHostnameFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}

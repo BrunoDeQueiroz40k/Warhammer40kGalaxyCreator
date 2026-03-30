@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
-import { ShieldCheck } from "lucide-react";
 import { useAnimatedBackground } from "../../hooks/useAnimatedBackground";
 
 import { LoginForm } from "./auth/LoginForm";
 import { RegisterForm } from "./auth/RegisterForm";
-const authImagePath = "/assets/imgs/auth/auth-visual.png";
+
+import img from "@/../public/assets/imgs/loading/loadingWallpapers/w5.png";
 
 type AuthMode = "login" | "register";
 
@@ -17,6 +17,7 @@ type RegisterPayload = {
   email: string;
   password: string;
   faction?: string;
+  subFaction?: string;
   chapter?: string;
 };
 
@@ -37,6 +38,7 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerFaction, setRegisterFaction] = useState("");
+  const [registerSubFaction, setRegisterSubFaction] = useState("");
   const [registerChapter, setRegisterChapter] = useState("");
 
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -52,8 +54,18 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
     () =>
       registerName.length > 1 &&
       registerEmail.length > 3 &&
-      registerPassword.length >= 8,
-    [registerName, registerEmail, registerPassword]
+      registerPassword.length >= 8 &&
+      registerFaction.length > 0 &&
+      registerSubFaction.length > 0 &&
+      (registerSubFaction !== "Space Marines" || registerChapter.length > 0),
+    [
+      registerName,
+      registerEmail,
+      registerPassword,
+      registerFaction,
+      registerSubFaction,
+      registerChapter,
+    ]
   );
 
   useEffect(() => {
@@ -98,7 +110,11 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
         email: registerEmail,
         password: registerPassword,
         faction: registerFaction || undefined,
-        chapter: registerChapter || undefined,
+        subFaction: registerSubFaction || undefined,
+        chapter:
+          registerSubFaction === "Space Marines"
+            ? registerChapter || undefined
+            : undefined,
       });
     } catch (e) {
       setRegisterError(e instanceof Error ? e.message : "Falha ao criar conta");
@@ -108,7 +124,7 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black overflow-hidden p-4 md:p-8">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black overflow-hidden p-4">
       {showBackground && (
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <div className="absolute inset-0 w-full h-full animate-pan-right opacity-35">
@@ -125,9 +141,9 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
       )}
 
       <div className="relative z-10 w-full max-w-4xl">
-        <div className="rounded-2xl overflow-hidden border border-amber-500/30 shadow-2xl bg-black/85">
-          <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] min-h-[330px]">
-            <div className="p-6 md:p-8 bg-black/70 border-r border-amber-500/20">
+        <div className="rounded-2xl overflow-hidden bg-black/85">
+          <div className="grid grid-cols-2">
+            <div className="p-6 md:p-8 bg-black/70">
               {mode === "login" ? (
                 <LoginForm
                   email={loginEmail}
@@ -149,6 +165,7 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
                   email={registerEmail}
                   password={registerPassword}
                   faction={registerFaction}
+                  subFaction={registerSubFaction}
                   chapter={registerChapter}
                   error={registerError}
                   isSubmitting={isRegisterSubmitting}
@@ -157,6 +174,7 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
                   onChangeEmail={setRegisterEmail}
                   onChangePassword={setRegisterPassword}
                   onChangeFaction={setRegisterFaction}
+                  onChangeSubFaction={setRegisterSubFaction}
                   onChangeChapter={setRegisterChapter}
                   onSubmit={handleRegister}
                   onSwitchToLogin={() => {
@@ -167,10 +185,10 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
               )}
             </div>
 
-            <div className="relative hidden md:block">
+            <div className="relative block">
               {!imageFailed ? (
                 <Image
-                  src={authImagePath}
+                  src={img}
                   alt="Ilustração da autenticação"
                   fill
                   className="object-cover object-center"
@@ -181,11 +199,11 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_30%,rgba(120,170,255,0.35),transparent_45%)]" />
                   <div className="absolute bottom-5 right-5 text-right">
                     <p className="text-xs text-amber-200">Espaço para imagem customizada</p>
-                    <p className="text-[10px] text-slate-300 mt-1">{authImagePath}</p>
+                    <p className="text-[10px] text-slate-300 mt-1">{img.src}</p>
                   </div>
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black" />
             </div>
           </div>
         </div>
@@ -195,10 +213,6 @@ export function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
             &ldquo;{currentQuote.quote}&rdquo;
           </p>
           <p className="text-xs text-slate-400 mt-1">— {currentQuote.author}</p>
-          <div className="flex items-center justify-center gap-2 mt-3 text-xs text-slate-300">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Sessão segura com backend ativo</span>
-          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,10 @@ export type AuthUser = {
   email: string;
   name: string;
   faction: string | null;
+  subFaction: string | null;
   chapter: string | null;
+  profileImage: string | null;
+  bannerImage: string | null;
 };
 
 export function useAuth() {
@@ -42,6 +45,7 @@ export function useAuth() {
       email: string;
       password: string;
       faction?: string;
+      subFaction?: string;
       chapter?: string;
     }) => {
       const res = await api.request<{ user: AuthUser }>("/auth/register", {

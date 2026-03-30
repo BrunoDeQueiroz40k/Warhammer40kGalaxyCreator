@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import { Upload, Warning, CheckCircle, XCircle } from "@phosphor-icons/react";
@@ -10,114 +9,22 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { Button } from "./ui/button";
-import { GalaxyExporter } from "../../lib/galaxyExport";
+import { useImportButton } from "../../hooks/useImportButton";
 
 export function ImportButton() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showResultDialog, setShowResultDialog] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
-  const [resultType, setResultType] = useState<"success" | "error">("success");
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // Validar se é um arquivo de galáxia válido
-      const isValid = await GalaxyExporter.validateGalaxyFile(file);
-      if (!isValid) {
-        setResultMessage(
-          "Arquivo inválido. Por favor, selecione um arquivo de galáxia válido."
-        );
-        setResultType("error");
-        setShowResultDialog(true);
-        return;
-      }
-
-      // Armazenar arquivo e mostrar diálogo de confirmação
-      setPendingFile(file);
-      setShowConfirmDialog(true);
-    } catch (error) {
-      console.error("Error validating file:", error);
-      setResultMessage(
-        "Erro ao validar arquivo. Verifique se o arquivo é válido."
-      );
-      setResultType("error");
-      setShowResultDialog(true);
-    }
-
-    // Limpar o input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleConfirmImport = async () => {
-    if (!pendingFile) return;
-
-    setShowConfirmDialog(false);
-
-    try {
-      // Importar dados
-      const importedPlanets = await GalaxyExporter.importGalaxy(pendingFile);
-
-      // Acessar a instância da galáxia
-      const galaxyInstance = (
-        window as {
-          galaxyInstance?: {
-            addPlanetWithoutEditMode?: (planetData: unknown) => void;
-            clearAllPlanets?: () => void;
-          };
-        }
-      ).galaxyInstance;
-
-      if (galaxyInstance) {
-        // Limpar planetas existentes
-        if (galaxyInstance.clearAllPlanets) {
-          galaxyInstance.clearAllPlanets();
-        }
-
-        // Adicionar planetas importados
-        for (const planet of importedPlanets) {
-          if (galaxyInstance.addPlanetWithoutEditMode) {
-            galaxyInstance.addPlanetWithoutEditMode(planet);
-          }
-        }
-
-        setResultMessage(
-          `Galáxia importada com sucesso! ${importedPlanets.length} planetas carregados.`
-        );
-        setResultType("success");
-        setShowResultDialog(true);
-      } else {
-        setResultMessage("Erro: Instância da galáxia não encontrada");
-        setResultType("error");
-        setShowResultDialog(true);
-      }
-    } catch (error) {
-      console.error("Error importing galaxy:", error);
-      setResultMessage(
-        "Erro ao importar galáxia. Verifique se o arquivo é válido."
-      );
-      setResultType("error");
-      setShowResultDialog(true);
-    }
-
-    setPendingFile(null);
-  };
-
-  const handleCancelImport = () => {
-    setShowConfirmDialog(false);
-    setPendingFile(null);
-  };
+  const {
+    fileInputRef,
+    showConfirmDialog,
+    setShowConfirmDialog,
+    showResultDialog,
+    setShowResultDialog,
+    resultMessage,
+    resultType,
+    handleImportClick,
+    handleFileChange,
+    handleConfirmImport,
+    handleCancelImport,
+  } = useImportButton();
 
   return (
     <>
