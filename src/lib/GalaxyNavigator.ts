@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import { PlanetEntry, PlanetSummaryData } from "../ts/interfaces";
+import { PlanetEntry, PlanetSummaryData } from "../types/interfaces";
 
 export class GalaxyNavigator {
   static navigateToPlanet(planet: PlanetEntry<PlanetSummaryData>): void {

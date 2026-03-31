@@ -1,4 +1,4 @@
-import { JsonValue } from "../ts/interfaces";
+import { JsonValue } from "../types/interfaces";
 
 let activeRequests = 0;
 

@@ -5,6 +5,7 @@ export type AuthUser = {
   id: string;
   email: string;
   name: string;
+  isGuest?: boolean;
   faction: string | null;
   subFaction: string | null;
   chapter: string | null;
@@ -62,6 +63,12 @@ export function useAuth() {
     setUser(null);
   }, []);
 
-  return { user, loading, refresh, login, register, logout };
-}
+  const loginAsGuest = useCallback(async () => {
+    const res = await api.request<{ user: AuthUser }>("/auth/guest", {
+      method: "POST",
+    });
+    setUser(res.user);
+  }, []);
 
+  return { user, loading, refresh, login, register, logout, loginAsGuest };
+}

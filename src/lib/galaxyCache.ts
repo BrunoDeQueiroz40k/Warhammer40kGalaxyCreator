@@ -1,4 +1,4 @@
-import { ExportablePlanetData, GalaxyCacheData, PlanetSchema } from "../ts/interfaces";
+import { ExportablePlanetData, GalaxyCacheData, PlanetSchema } from "../types/interfaces";
 
 export class GalaxyCache {
   private static readonly CACHE_KEY = "galaxy-cache";
@@ -17,11 +17,9 @@ export class GalaxyCache {
       typeof p.name === "string" &&
       typeof p.faction === "string" &&
       typeof p.planetType === "string" &&
-      typeof p.description === "string" &&
       typeof p.population === "number" &&
       (p.status === "ativo" || p.status === "destruido") &&
       typeof p.image === "string" &&
-      typeof p.vrchatUrl === "string" &&
       typeof p.color === "string" &&
       typeof p.segmentum === "string" &&
       Boolean(p.position) &&

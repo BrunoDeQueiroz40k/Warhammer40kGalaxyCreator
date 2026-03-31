@@ -1,16 +1,14 @@
 import { useEffect, useCallback, useRef } from "react";
 
-import { CachePlanetData, GalaxyCacheDataProvider, PlanetEntry } from "../ts/interfaces";
+import { CachePlanetData, GalaxyCacheDataProvider, PlanetEntry } from "../types/interfaces";
 
-import { api } from "../lib/apiClient";
-import { readPlanets } from "../ts/functions";
+import { readPlanets } from "../types/functions";
 import { GalaxyCache } from "../lib/galaxyCache";
 import { GalaxyEvents } from "../lib/galaxyEvents";
 
 export function useGalaxyCache() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string | null>(null);
-  const lastSavedBackendRef = useRef<string | null>(null);
 
   // Salvar galáxia no cache com debounce e otimização
   const saveGalaxy = useCallback(() => {
@@ -35,12 +33,12 @@ export function useGalaxyCache() {
       const exportablePlanets = planets.map((planet) => ({
         name: planet.data?.name || "",
         faction: planet.data?.faction || "",
+        domain: planet.data?.domain || planet.data?.faction || "",
+        chapter: planet.data?.chapter || null,
         planetType: planet.data?.planetType || "",
-        description: planet.data?.description || "",
         population: planet.data?.population || 0,
         status: (planet.data?.status as "ativo" | "destruido") || "ativo",
         image: planet.data?.image || "",
-        vrchatUrl: planet.data?.vrchatUrl || "",
         color: planet.data?.color || "",
         segmentum: planet.data?.segmentum || "",
         position: {
@@ -67,24 +65,6 @@ export function useGalaxyCache() {
         console.warn("Falha ao salvar galáxia no cache");
       }
 
-      // Também tentar persistir no backend (sem quebrar UX se não estiver logado)
-      void (async () => {
-        try {
-          if (lastSavedBackendRef.current === currentData) return;
-          await api.request("/snapshots", {
-            method: "POST",
-            body: JSON.stringify({
-              payload: {
-                planets: exportablePlanets,
-                savedAt: new Date().toISOString(),
-              },
-            }),
-          });
-          lastSavedBackendRef.current = currentData;
-        } catch {
-          // ignore
-        }
-      })();
     } catch (error) {
       console.error("Erro ao salvar galáxia:", error);
     }
