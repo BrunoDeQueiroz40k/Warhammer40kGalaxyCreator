@@ -26,31 +26,13 @@ export type BadgeVariant =
   | "aeldari"
   | "dark_eldar";
 
-export interface PlanetSummaryData {
-  name: string;
-  faction?: string;
-  domain?: string;
-  chapter?: string | null;
-  planetType: string;
-  population: number;
-  status: string;
-  color: string;
-  segmentum: string;
-  image?: string;
-}
+export type PlanetSummaryData =
+  Pick<PlanetData, "id" | "name" | "faction" | "domain" | "chapter" | "isHomePlanet" | "planetType" | "image"> &
+  Required<Pick<PlanetData, "population" | "status" | "color" | "segmentum">>;
 
-export interface CachePlanetData {
-  name?: string;
-  faction?: string;
-  domain?: string;
-  chapter?: string | null;
-  planetType?: string;
-  population?: number;
-  status?: string;
-  image?: string;
-  color?: string;
-  segmentum?: string;
-}
+export type CachePlanetData = Partial<
+  Pick<PlanetData, "id" | "name" | "faction" | "domain" | "chapter" | "isHomePlanet" | "planetType" | "population" | "status" | "image" | "color" | "segmentum">
+>;
 
 export interface PlanetEntry<TData = PlanetSummaryData> {
   data: TData;
@@ -64,7 +46,6 @@ export interface SearchResult {
 }
 
 export interface GalaxyDataProvider<TPlanet = PlanetEntry> {
-  getAllPlanetsData?: () => TPlanet[];
   getPlanets?: () => TPlanet[];
 }
 
@@ -78,6 +59,9 @@ export interface PlanetCardProps {
   planet: PlanetData;
   position: Vector2D;
   onClose: () => void;
+  onAttack?: () => void;
+  canAttack?: boolean;
+  isAttacking?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -120,8 +104,6 @@ export interface ExportablePlanetData extends PlanetData {
   color?: string;
   segmentum?: string;
 }
-
-export interface PlanetSchema extends ExportablePlanetData { }
 
 export interface GalaxyCacheData {
   planets: ExportablePlanetData[];

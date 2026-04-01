@@ -16,7 +16,7 @@ import { SearchInput } from "@/components/planet/SearchInput";
 import { ResetCameraButton } from "@/components/ResetCameraButton";
 import { UserProfileModal } from "@/components/screens/UserProfileModal";
 import { GameActionsModal } from "@/components/screens/GameActionsModal";
-import { getPlanets, resetCampaign } from "@/lib/campaignApi";
+import { getPlanets, getRoutes, resetCampaign } from "@/lib/campaignApi";
 import { GalaxyCache } from "@/lib/galaxyCache";
 
 import GalaxyComponent from "@/components/galaxyComponent/GalaxyComponent";
@@ -113,6 +113,7 @@ export default function GamePage() {
           galaxyInstance?: {
             clearAllPlanets?: () => void;
             addPlanetWithoutEditMode?: (planet: unknown) => void;
+            setRoutes?: (routes: unknown[]) => void;
           };
         }
       ).galaxyInstance;
@@ -126,10 +127,12 @@ export default function GamePage() {
 
       try {
         const planets = await getPlanets();
+        const routes = await getRoutes();
         if (cancelled) return;
 
         galaxyInstance.clearAllPlanets?.();
         planets.forEach((planet) => galaxyInstance.addPlanetWithoutEditMode?.(planet));
+        galaxyInstance.setRoutes?.(routes);
         initializedFromServerRef.current = true;
       } catch {
         if (attempts < maxAttempts) {
@@ -169,6 +172,7 @@ export default function GamePage() {
         <GalaxyComponent
           showSegmentums={showSegmentums}
           showPlanetNames={showPlanetNames}
+          playerFaction={user.faction}
         />
       </div>
 

@@ -59,7 +59,6 @@ let mouse: THREE.Vector2;
 
 function setupPlanetEditing() {
   document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("keyup", onKeyUp);
 
   canvas.addEventListener("click", onCanvasClick);
 }
@@ -78,46 +77,40 @@ function onCanvasClick(event: MouseEvent) {
   raycaster.setFromCamera(mouse, camera);
 
   const planets = galaxy.getPlanets();
-  const planetObjects = planets
-    .map((planet) => planet.obj)
-    .filter((obj) => obj !== null);
+  const planetObjects = galaxy.getPlanetObjects();
 
   raycaster.near = 0;
-  raycaster.far = 1000000; // Very large far distance
+  raycaster.far = 1000000;
 
-  const allIntersects = raycaster.intersectObjects(scene.children);
+  const intersects = raycaster.intersectObjects(planetObjects);
 
   raycaster.layers.set(BLOOM_LAYER);
-  const bloomIntersects = raycaster.intersectObjects(scene.children);
+  const bloomIntersects = raycaster.intersectObjects(planetObjects);
+  raycaster.layers.set(0);
 
-  const combinedIntersects = [...allIntersects, ...bloomIntersects];
+  const combinedIntersects = [...intersects, ...bloomIntersects];
   combinedIntersects.sort(
     (a, b) => (b.object.renderOrder || 0) - (a.object.renderOrder || 0)
   );
 
-  raycaster.layers.set(0);
-
-  const intersects = raycaster.intersectObjects(planetObjects);
-
   let clickedPlanet = null;
 
-  if (intersects.length > 0) {
-    const clickedObject = intersects[0].object;
-    clickedPlanet = planets.find((planet) => planet.obj === clickedObject);
-  }
+  if (combinedIntersects.length > 0) {
+    for (const intersect of combinedIntersects) {
+      if ((intersect.object as PlanetSprite).isPlanet) {
+        const planetData = (intersect.object as PlanetSprite).planetData;
+        clickedPlanet = planets.find((planet) => planet.data === planetData) ?? null;
+      } else {
+        const planet = planets.find(
+          (candidate) => candidate.obj && candidate.obj.uuid === intersect.object.uuid
+        );
+        if (planet && planet.obj) {
+          clickedPlanet = planet;
+        }
+      }
 
-  if (!clickedPlanet && combinedIntersects.length > 0) {
-    const firstIntersect = combinedIntersects[0];
-
-    if ((firstIntersect.object as PlanetSprite).isPlanet) {
-      const planetData = (firstIntersect.object as PlanetSprite).planetData;
-      clickedPlanet = planets.find((planet) => planet.data === planetData);
-    } else {
-      const planet = planets.find(
-        (planet) => planet.obj && planet.obj.uuid === firstIntersect.object.uuid
-      );
-      if (planet && planet.obj) {
-        clickedPlanet = planet;
+      if (clickedPlanet) {
+        break;
       }
     }
   }
@@ -183,14 +176,6 @@ function onKeyDown(event: KeyboardEvent) {
         clearCurrentPlanet();
       }
       break;
-  }
-}
-
-function onKeyUp(event: KeyboardEvent) {
-  const key = event.key.toLowerCase();
-
-  // Stop movement when movement keys are released
-  if (["w", "a", "s", "d", "q", "e"].includes(key)) {
   }
 }
 
@@ -378,7 +363,6 @@ function initRenderPipeline(): void {
       uniforms: {
         baseTexture: { value: null },
         bloomTexture: { value: bloomComposer.renderTarget2.texture },
-        overlayTexture: { value: overlayComposer.renderTarget2.texture },
       },
       vertexShader: CompositionShader.vertex,
       fragmentShader: CompositionShader.fragment,
@@ -414,10 +398,6 @@ async function render(): Promise<void> {
     camera.updateProjectionMatrix();
   }
 
-  const canvas = renderer.domElement;
-  camera.aspect = canvas.clientWidth / canvas.clientHeight;
-  camera.updateProjectionMatrix();
-
   if (galaxy) {
     galaxy.updateScale(camera);
 
@@ -446,7 +426,5 @@ function renderPipeline(): void {
 }
 
 initThree();
-const axes = new THREE.AxesHelper(5.0);
-scene.add(axes);
 
 requestAnimationFrame(render);

@@ -1,4 +1,4 @@
-import { BadgeVariant, GalaxyDataProvider } from "./interfaces";
+import { BadgeVariant } from "@/types/interfaces";
 
 export function getFactionVariant(faction: string): BadgeVariant {
   switch (faction) {
@@ -42,18 +42,6 @@ export function formatPopulation(value: number): string {
     return `${thousands} mil`;
   }
   return value.toString();
-}
-
-export function readPlanets<T>(provider: GalaxyDataProvider<T> | null | undefined): T[] {
-  if (!provider) return [];
-  if (provider.getAllPlanetsData) return provider.getAllPlanetsData();
-  if (provider.getPlanets) return provider.getPlanets();
-  return [];
-}
-
-export function getWindowGalaxyProvider<T>(): GalaxyDataProvider<T> | null {
-  if (typeof window === "undefined") return null;
-  return (window as { galaxyInstance?: GalaxyDataProvider<T> }).galaxyInstance ?? null;
 }
 
 export async function fileToBase64(file: File): Promise<string> {

@@ -3,12 +3,19 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 import { PlanetCardProps } from "@/types/interfaces";
-import { formatPopulation, getFactionVariant } from "@/types/functions";
+import { formatPopulation, getFactionVariant } from "@/lib/formatters";
 
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 
-export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
+export function PlanetCard({
+  planet,
+  position,
+  onClose,
+  onAttack,
+  canAttack = false,
+  isAttacking = false,
+}: PlanetCardProps) {
   const [isVisible, setIsVisible] = useState(true);
   const domainLabel = planet.domain || "Sem dominio";
 
@@ -70,6 +77,11 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
             <div className="border border-amber-500/30 rounded-md p-4 px-5 space-y-2 w-full">
               <p className="text-slate-400 font-bold text-xs">DOMINIO</p>
               <div className="flex items-center gap-2 text-slate-300 flex-wrap">
+                {planet.isHomePlanet && (
+                  <Badge className="bg-amber-500/20 text-amber-300 border border-amber-400/50">
+                    Capital
+                  </Badge>
+                )}
                 <Badge variant={getFactionVariant(domainLabel)}>{domainLabel}</Badge>
                 <Badge variant="normal">{planet.planetType || "Não especificado"}</Badge>
                 {planet.chapter && <Badge variant="imperium">{planet.chapter}</Badge>}
@@ -95,6 +107,15 @@ export function PlanetCard({ planet, position, onClose }: PlanetCardProps) {
                 </p>
               </div>
             </div>
+            {canAttack && onAttack && (
+              <Button
+                onClick={onAttack}
+                disabled={isAttacking}
+                className="w-full bg-red-700 hover:bg-red-600 text-white"
+              >
+                {isAttacking ? "Atacando..." : "Atacar"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

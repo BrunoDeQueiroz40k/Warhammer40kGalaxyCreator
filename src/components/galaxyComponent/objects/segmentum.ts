@@ -44,7 +44,7 @@ export const segmentums: SegmentumData[] = [
   },
   {
     id: "ultima",
-    name: "Ultima Segmentum",
+    name: "Segmentum Ultima",
     color: "rgba(147, 51, 234, 0.6)", // Azul-púrpura
     selectedColor: "rgba(147, 51, 234, 0.9)",
     path: "M61.2-121.185l537.255-364.86c23.895 31.59 48.735 61.785 66.24 98.82l-66.375 32.625c42.975 81.675 66.24 159.66 80.82 243.855l75.105-7.155c12.465 98.55 10.305 241.65-40.86 367.335l-38.16-11.7c-29.385 75.105-76.005 163.26-132.705 225.675l26.82 24.84c-46.305 50.715-98.685 97.02-160.74 130.14L26.055 89.73c33.615-18.54 98.235-111.195 34.47-210.78",
@@ -142,52 +142,12 @@ export class Segmentum {
       mesh.lookAt(0, 0, 1);
 
       this.obj.add(mesh);
-      // this.createTextLabel();
-
       document.body.removeChild(container);
       URL.revokeObjectURL(url);
     };
 
     img.src = url;
   }
-
-  // private createTextLabel() {
-  //   const canvas = document.createElement("canvas");
-  //   const context = canvas.getContext("2d");
-  //   if (!context) return;
-
-  //   canvas.width = 512;
-  //   canvas.height = 128;
-
-  //   context.fillStyle = "white";
-  //   context.font = "bold 32px Arial";
-  //   context.textAlign = "center";
-  //   context.textBaseline = "middle";
-
-  //   const nameParts = this.data.name.split(" ");
-  //   const firstLine = nameParts[0];
-  //   const secondLine = nameParts.slice(1).join(" ");
-
-  //   context.fillText(firstLine, 256, 40);
-  //   context.fillText(secondLine, 256, 88);
-
-  //   const texture = new THREE.CanvasTexture(canvas);
-  //   const material = new THREE.SpriteMaterial({
-  //     map: texture,
-  //     transparent: true,
-  //     opacity: 0.9,
-  //   });
-
-  //   const sprite = new THREE.Sprite(material);
-  //   sprite.scale.set(200, 50, 1);
-  //   sprite.position.set(
-  //     (this.data.textPosition.x - 700) * 0.1,
-  //     (this.data.textPosition.y - 580) * 0.1,
-  //     10
-  //   );
-
-  //   this.obj.add(sprite);
-  // }
 
   public toggleVisibility(show: boolean) {
     this.isVisible = show;

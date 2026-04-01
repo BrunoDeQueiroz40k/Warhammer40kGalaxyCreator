@@ -1,8 +1,8 @@
 import { useEffect, useCallback, useRef } from "react";
 
-import { CachePlanetData, GalaxyCacheDataProvider, PlanetEntry } from "../types/interfaces";
+import { CachePlanetData, GalaxyCacheDataProvider, PlanetEntry } from "@/types/interfaces";
 
-import { readPlanets } from "../types/functions";
+import { readPlanets } from "@/lib/galaxyHelpers";
 import { GalaxyCache } from "../lib/galaxyCache";
 import { GalaxyEvents } from "../lib/galaxyEvents";
 
@@ -31,10 +31,12 @@ export function useGalaxyCache() {
 
       // Converter para formato exportável
       const exportablePlanets = planets.map((planet) => ({
+        id: planet.data?.id,
         name: planet.data?.name || "",
         faction: planet.data?.faction || "",
         domain: planet.data?.domain || planet.data?.faction || "",
         chapter: planet.data?.chapter || null,
+        isHomePlanet: Boolean(planet.data?.isHomePlanet),
         planetType: planet.data?.planetType || "",
         population: planet.data?.population || 0,
         status: (planet.data?.status as "ativo" | "destruido") || "ativo",

@@ -3,135 +3,49 @@ import * as Dialog from "@radix-ui/react-dialog";
 
 import { Search, X, List } from "lucide-react";
 
-import { PlanetEntry, PlanetSummaryData, SearchResult } from "@/types/interfaces";
-import { getFactionVariant, getWindowGalaxyProvider, readPlanets } from "@/types/functions";
+import { PlanetEntry, PlanetSummaryData } from "@/types/interfaces";
+import { getFactionVariant } from "@/lib/formatters";
 
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { GalaxyNavigator } from "@/lib/galaxyNavigator";
+import { usePlanetSearch } from "@/hooks/usePlanetSearch";
 
 export function PlanetList() {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [allPlanets, setAllPlanets] = useState<PlanetEntry<PlanetSummaryData>[]>([]);
-  const [filteredPlanets, setFilteredPlanets] = useState<SearchResult[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const getAllPlanets = (): PlanetEntry<PlanetSummaryData>[] => {
-    if (typeof window === "undefined") return [];
+  const {
+    results: filteredPlanets,
+    selectedIndex,
+    setSelectedIndex,
+    handleKeyDown: onArrowNav,
+    handleSelect,
+    allPlanets,
+    refreshPlanets,
+  } = usePlanetSearch(searchValue, { showAllWhenEmpty: true });
 
-    const galaxyInstance = getWindowGalaxyProvider<PlanetEntry<PlanetSummaryData>>();
-    if (!galaxyInstance) return [];
-
-    try {
-      return readPlanets(galaxyInstance);
-    } catch (error) {
-      console.error("Erro ao obter planetas:", error);
-      return [];
-    }
-  };
-
-  // Carregar todos os planetas quando o dialog abrir
   useEffect(() => {
     if (open) {
-      const planets = getAllPlanets();
-      setAllPlanets(planets);
+      refreshPlanets();
       setSearchValue("");
-      setSelectedIndex(-1);
-      // Focar no input após um pequeno delay para garantir que o dialog está renderizado
       setTimeout(() => {
         searchRef.current?.focus();
       }, 100);
     }
-  }, [open]);
+  }, [open, refreshPlanets]);
 
-  // Filtrar planetas baseado na pesquisa
-  useEffect(() => {
-    const filterPlanets = (query: string): SearchResult[] => {
-      if (!query.trim()) {
-        // Se não há query, mostrar todos os planetas
-        return allPlanets.map((planet) => ({
-          planet,
-          matchScore: 50,
-          matchType: "name" as const,
-        }));
-      }
-
-      const results: SearchResult[] = [];
-      const queryLower = query.toLowerCase();
-
-      allPlanets.forEach((planet) => {
-        const name = planet.data?.name?.toLowerCase() || "";
-        const domain = (planet.data?.domain || planet.data?.faction || "").toLowerCase();
-        const planetType = planet.data?.planetType?.toLowerCase() || "";
-        const segmentum = planet.data?.segmentum?.toLowerCase() || "";
-
-        let matchScore = 0;
-        let matchType: "name" | "faction" | "type" = "name";
-
-        // Verificar correspondência exata no nome (maior prioridade)
-        if (name.includes(queryLower)) {
-          matchScore = 100;
-          if (name.startsWith(queryLower)) matchScore = 150;
-          matchType = "name";
-        }
-        // Verificar correspondência na facção
-        else if (domain.includes(queryLower)) {
-          matchScore = 80;
-          if (domain.startsWith(queryLower)) matchScore = 120;
-          matchType = "faction";
-        }
-        // Verificar correspondência no tipo de planeta
-        else if (planetType.includes(queryLower)) {
-          matchScore = 60;
-          if (planetType.startsWith(queryLower)) matchScore = 90;
-          matchType = "type";
-        }
-        // Verificar correspondência no segmentum
-        else if (segmentum.includes(queryLower)) {
-          matchScore = 70;
-          if (segmentum.startsWith(queryLower)) matchScore = 100;
-          matchType = "name";
-        }
-
-        if (matchScore > 0) {
-          results.push({ planet, matchScore, matchType });
-        }
-      });
-
-      // Ordenar por score (maior primeiro)
-      return results.sort((a, b) => b.matchScore - a.matchScore);
-    };
-
-    const filtered = filterPlanets(searchValue);
-    setFilteredPlanets(filtered);
-    setSelectedIndex(-1);
-  }, [searchValue, allPlanets]);
-
-  // Navegação com teclado
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (filteredPlanets.length === 0) return;
+    onArrowNav(e);
 
     switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < filteredPlanets.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : filteredPlanets.length - 1
-        );
-        break;
       case "Enter":
         e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < filteredPlanets.length) {
-          const selectedPlanet = filteredPlanets[selectedIndex].planet;
-          GalaxyNavigator.navigateToPlanet(selectedPlanet);
+        const planet = handleSelect();
+        if (planet) {
+          GalaxyNavigator.navigateToPlanet(planet);
           setOpen(false);
         }
         break;
@@ -175,7 +89,6 @@ export function PlanetList() {
                 </div>
               </Dialog.Title>
 
-              {/* Barra de pesquisa */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-400 w-4 h-4" />
                 <Input
@@ -197,7 +110,6 @@ export function PlanetList() {
                 )}
               </div>
 
-              {/* Lista de planetas */}
               <div className="max-h-96 overflow-y-auto border border-amber-500/30 rounded-lg">
                 {filteredPlanets.length > 0 ? (
                   filteredPlanets.map((result, index) => (
@@ -218,6 +130,11 @@ export function PlanetList() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
+                            {result.planet.data?.isHomePlanet && (
+                              <Badge className="px-2 py-1 text-xs bg-amber-500/20 text-amber-300 border border-amber-400/50">
+                                Capital
+                              </Badge>
+                            )}
                             <Badge
                               variant={getFactionVariant(
                                 result.planet.data?.domain || result.planet.data?.faction || ""
@@ -226,7 +143,7 @@ export function PlanetList() {
                             >
                               {result.planet.data?.domain ||
                                 result.planet.data?.faction ||
-                                "Não especificado"}
+                                "Nao especificado"}
                             </Badge>
                             {result.planet.data?.chapter && (
                               <Badge variant="imperium" className="px-2 py-1 text-xs">
@@ -238,7 +155,7 @@ export function PlanetList() {
                               className="px-2 py-1 text-xs"
                             >
                               {result.planet.data?.planetType ||
-                                "Não especificado"}
+                                "Nao especificado"}
                             </Badge>
                             {result.planet.data?.status && (
                               <Badge

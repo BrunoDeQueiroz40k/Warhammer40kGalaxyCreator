@@ -19,16 +19,25 @@ import { mulberry32 } from "../prng";
 import { Haze } from "./haze";
 import { Planet, PlanetData } from "./planet";
 import { GalaxyEvents } from "@/lib/galaxyEvents";
+import { PlanetRoute } from "@/lib/campaignApi";
 
 export class Galaxy {
   scene: THREE.Scene;
   stars: Star[];
   haze: Haze[];
   planets: Planet[];
+  private routeGroup: THREE.Group;
+  private routes: PlanetRoute[];
+  private lastCameraPosition: THREE.Vector3;
+  private static CAMERA_MOVE_THRESHOLD = 0.5;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
     this.planets = [];
+    this.routes = [];
+    this.routeGroup = new THREE.Group();
+    this.lastCameraPosition = new THREE.Vector3(Infinity, Infinity, Infinity);
+    this.scene.add(this.routeGroup);
     const rand = mulberry32(123456);
     this.stars = this.generateObject(
       NUM_STARS,
@@ -46,15 +55,30 @@ export class Galaxy {
   }
 
   updateScale(camera: THREE.Camera) {
-    this.stars.forEach((star) => {
-      star.updateScale(camera);
-    });
-    this.haze.forEach((haze) => {
-      haze.updateScale(camera);
-    });
+    const cameraPos = (camera as THREE.Camera & { position: THREE.Vector3 }).position;
+    const cameraMoved = this.lastCameraPosition.distanceTo(cameraPos) >= Galaxy.CAMERA_MOVE_THRESHOLD;
+
+    if (cameraMoved) {
+      this.stars.forEach((star) => {
+        star.updateScale(camera);
+      });
+      this.haze.forEach((haze) => {
+        haze.updateScale(camera);
+      });
+      this.lastCameraPosition.copy(cameraPos);
+    }
+
     this.planets.forEach((planet) => {
       planet.updateScale(camera);
     });
+  }
+
+  getPlanetObjects(): THREE.Object3D[] {
+    const result: THREE.Object3D[] = [];
+    for (const planet of this.planets) {
+      if (planet.obj) result.push(planet.obj);
+    }
+    return result;
   }
 
   generateObject<T>(
@@ -105,6 +129,7 @@ export class Galaxy {
     planet.toThreeObject(this.scene);
     planet.enterEditMode(this.scene);
     this.planets.push(planet);
+    this.rebuildRoutesVisual();
     
     // Disparar evento para salvar imediatamente no cache
     GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
@@ -116,6 +141,7 @@ export class Galaxy {
     const planet = new Planet(planetData);
     planet.toThreeObject(this.scene);
     this.planets.push(planet);
+    this.rebuildRoutesVisual();
     
     // Disparar evento para salvar imediatamente no cache
     GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_ADDED);
@@ -165,6 +191,7 @@ export class Galaxy {
       
       // Atualizar visual do planeta
       planet.updateVisual();
+      this.rebuildRoutesVisual();
       
       // Disparar evento para salvar imediatamente no cache
       GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_UPDATED);
@@ -176,6 +203,7 @@ export class Galaxy {
     if (index > -1) {
       planet.removeFromScene(this.scene);
       this.planets.splice(index, 1);
+      this.rebuildRoutesVisual();
       
       // Disparar evento para salvar imediatamente no cache
       GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.PLANET_REMOVED);
@@ -198,13 +226,10 @@ export class Galaxy {
       planet.removeFromScene(this.scene);
     });
     this.planets = [];
+    this.rebuildRoutesVisual();
     
     // Disparar evento para salvar imediatamente no cache
     GalaxyEvents.dispatchEvent(GalaxyEvents.EVENTS.GALAXY_CLEARED);
-  }
-
-  getAllPlanetsData(): Planet[] {
-    return [...this.planets];
   }
 
   enterAllPlanetsEditMode(): void {
@@ -213,5 +238,113 @@ export class Galaxy {
         planet.enterEditMode(this.scene);
       }
     });
+  }
+
+  setRoutes(routes: PlanetRoute[]): void {
+    this.routes = [...routes];
+    this.rebuildRoutesVisual();
+  }
+
+  canAttackViaRoute(targetPlanetId: string, playerDomain: string | null): boolean {
+    if (!playerDomain) return false;
+    const target = this.planets.find((planet) => planet.data.id === targetPlanetId);
+    if (!target) return false;
+    const targetDomain = target.data.domain ?? target.data.faction ?? "Sem dominio";
+    if (targetDomain === playerDomain) return false;
+
+    const ownedIds = new Set(
+      this.planets
+        .filter((planet) => (planet.data.domain ?? planet.data.faction) === playerDomain)
+        .map((planet) => planet.data.id)
+        .filter((id): id is string => Boolean(id))
+    );
+    if (ownedIds.size === 0) return false;
+
+    // Fallback seguro: se rotas ainda nao foram carregadas, permite por proximidade.
+    if (this.routes.length === 0) {
+      const targetPos = target.position;
+      return this.planets.some((planet) => {
+        const id = planet.data.id;
+        if (!id || !ownedIds.has(id)) return false;
+        const d = planet.position.distanceTo(targetPos);
+        return d <= 220;
+      });
+    }
+
+    return this.routes.some((route) => {
+      if (route.fromPlanetId === targetPlanetId) return ownedIds.has(route.toPlanetId);
+      if (route.toPlanetId === targetPlanetId) return ownedIds.has(route.fromPlanetId);
+      return false;
+    });
+  }
+
+  private clearRouteObjects() {
+    this.routeGroup.children.forEach((child) => {
+      if (child instanceof THREE.Line) {
+        child.geometry.dispose();
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
+    });
+    this.routeGroup.clear();
+  }
+
+  private rebuildRoutesVisual() {
+    this.clearRouteObjects();
+    const homePlanet = this.planets.find((planet) => planet.data.isHomePlanet);
+    const playerDomainCandidate = homePlanet?.data.domain ?? homePlanet?.data.faction ?? null;
+    const playerDomain =
+      playerDomainCandidate && playerDomainCandidate !== "Sem dominio"
+        ? playerDomainCandidate
+        : null;
+
+    if (this.routes.length === 0) return;
+
+    const byId = new Map(
+      this.planets
+        .filter((planet) => !!planet.data.id)
+        .map((planet) => [planet.data.id as string, planet])
+    );
+
+    const uniqueRoutes = new Map<string, PlanetRoute>();
+    for (const route of this.routes) {
+      const key =
+        route.fromPlanetId < route.toPlanetId
+          ? `${route.fromPlanetId}:${route.toPlanetId}`
+          : `${route.toPlanetId}:${route.fromPlanetId}`;
+      if (!uniqueRoutes.has(key)) {
+        uniqueRoutes.set(key, route);
+      }
+    }
+
+    for (const route of uniqueRoutes.values()) {
+      const fromPlanet = byId.get(route.fromPlanetId);
+      const toPlanet = byId.get(route.toPlanetId);
+      if (!fromPlanet || !toPlanet) continue;
+
+      const fromDomain = fromPlanet.data.domain ?? fromPlanet.data.faction ?? "Sem dominio";
+      const toDomain = toPlanet.data.domain ?? toPlanet.data.faction ?? "Sem dominio";
+      const isOwnedConnection =
+        !!playerDomain && fromDomain === playerDomain && toDomain === playerDomain;
+
+      const points = [
+        fromPlanet.position.clone().add(new THREE.Vector3(0, 0, 0.08)),
+        toPlanet.position.clone().add(new THREE.Vector3(0, 0, 0.08)),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const baseMaterial = new THREE.LineBasicMaterial({
+        color: isOwnedConnection ? 0x15803d : 0x64748b,
+        transparent: true,
+        opacity: isOwnedConnection ? 0.78 : 0.5,
+        depthTest: false,
+      });
+      const baseLine = new THREE.Line(geometry, baseMaterial);
+      baseLine.renderOrder = 12;
+      baseLine.userData.isFrontierLine = true;
+      this.routeGroup.add(baseLine);
+    }
   }
 }

@@ -3,7 +3,6 @@ export class CompositionShader {
     static fragment = `
         uniform sampler2D baseTexture;
         uniform sampler2D bloomTexture;
-        uniform sampler2D overlayTexture;
 
         varying vec2 vUv;
 

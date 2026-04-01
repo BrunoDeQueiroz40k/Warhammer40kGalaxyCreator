@@ -6,7 +6,7 @@ import {
   CampaignSetupConfig,
   CampaignSetupScreen,
 } from "@/components/screens/CampaignSetupScreen";
-import { startCampaign } from "@/lib/campaignApi";
+import { startCampaignMap } from "@/lib/campaignApi";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function CampaignSetupPage() {
@@ -16,7 +16,7 @@ export default function CampaignSetupPage() {
   const handlePlay = async (config: CampaignSetupConfig) => {
     localStorage.setItem("game-setup-config", JSON.stringify(config));
     try {
-      await startCampaign(config);
+      await startCampaignMap(config);
     } catch {
       alert("Falha ao iniciar campanha no servidor.");
       return;

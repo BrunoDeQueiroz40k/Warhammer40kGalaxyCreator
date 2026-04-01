@@ -2,104 +2,29 @@ import { useState, useEffect, useRef } from "react";
 
 import { Search, X, MapPin, Users, Zap } from "lucide-react";
 
-import { PlanetEntry, SearchResult, PlanetSummaryData } from "@/types/interfaces";
-import { getFactionVariant, getWindowGalaxyProvider, readPlanets } from "@/types/functions";
+import { PlanetEntry, PlanetSummaryData } from "@/types/interfaces";
+import { getFactionVariant } from "@/lib/formatters";
 
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { GalaxyNavigator } from "@/lib/galaxyNavigator";
+import { usePlanetSearch } from "@/hooks/usePlanetSearch";
 
 export function SearchInput() {
   const [searchValue, setSearchValue] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Obter todos os planetas
-  const getAllPlanets = (): PlanetEntry<PlanetSummaryData>[] => {
-    if (typeof window === "undefined") return [];
+  const {
+    results: searchResults,
+    selectedIndex,
+    setSelectedIndex,
+    handleKeyDown: onArrowNav,
+    handleSelect,
+    refreshPlanets,
+  } = usePlanetSearch(searchValue, { maxResults: 8, showAllWhenEmpty: false });
 
-    const galaxyInstance = getWindowGalaxyProvider<PlanetEntry<PlanetSummaryData>>();
-    if (!galaxyInstance) return [];
-
-    try {
-      return readPlanets(galaxyInstance);
-    } catch (error) {
-      console.error("Error getting all planets:", error);
-      return [];
-    }
-  };
-
-  // Atualizar resultados da pesquisa
-  useEffect(() => {
-    const filterPlanets = (query: string): SearchResult[] => {
-      if (!query.trim()) return [];
-
-      const planets = getAllPlanets();
-      const results: SearchResult[] = [];
-
-      planets.forEach((planet) => {
-        const name = planet.data?.name?.toLowerCase() || "";
-        const domain = (planet.data?.domain || planet.data?.faction || "").toLowerCase();
-        const planetType = planet.data?.planetType?.toLowerCase() || "";
-        const queryLower = query.toLowerCase();
-
-        let matchScore = 0;
-        let matchType: "name" | "faction" | "type" = "name";
-
-        // Verificar correspondência exata no nome (maior prioridade)
-        if (name.includes(queryLower)) {
-          matchScore = 100;
-          if (name.startsWith(queryLower)) matchScore = 150;
-          matchType = "name";
-        }
-        // Verificar correspondência na facção
-        else if (domain.includes(queryLower)) {
-          matchScore = 80;
-          if (domain.startsWith(queryLower)) matchScore = 120;
-          matchType = "faction";
-        }
-        // Verificar correspondência no tipo de planeta
-        else if (planetType.includes(queryLower)) {
-          matchScore = 60;
-          if (planetType.startsWith(queryLower)) matchScore = 90;
-          matchType = "type";
-        }
-        if (matchScore > 0) {
-          results.push({ planet, matchScore, matchType });
-        }
-      });
-
-      // Ordenar por score (maior primeiro)
-      return results.sort((a, b) => b.matchScore - a.matchScore).slice(0, 8);
-    };
-
-    const getFirstFivePlanets = (): SearchResult[] => {
-      const planets = getAllPlanets();
-      return planets.slice(0, 5).map((planet) => ({
-        planet,
-        matchScore: 50, // Score neutro para planetas sem filtro
-        matchType: "name" as const,
-      }));
-    };
-
-    if (searchValue.trim()) {
-      const results = filterPlanets(searchValue);
-      setSearchResults(results);
-      setShowResults(true);
-      setSelectedIndex(-1);
-    } else {
-      // Quando não há query, mostrar primeiros 5 planetas
-      const firstFive = getFirstFivePlanets();
-      setSearchResults(firstFive);
-      setShowResults(false);
-      setSelectedIndex(-1);
-    }
-  }, [searchValue]);
-
-  // Fechar resultados ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -114,28 +39,25 @@ export function SearchInput() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Navegação com teclado
+  useEffect(() => {
+    if (searchValue.trim()) {
+      setShowResults(true);
+    } else {
+      setShowResults(false);
+    }
+  }, [searchValue]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showResults || searchResults.length === 0) return;
 
+    onArrowNav(e);
+
     switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < searchResults.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : searchResults.length - 1
-        );
-        break;
       case "Enter":
         e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < searchResults.length) {
-          const selectedPlanet = searchResults[selectedIndex].planet;
-          GalaxyNavigator.navigateToPlanet(selectedPlanet);
+        const planet = handleSelect();
+        if (planet) {
+          GalaxyNavigator.navigateToPlanet(planet);
           setSearchValue("");
           setShowResults(false);
         }
@@ -155,13 +77,7 @@ export function SearchInput() {
   };
 
   const handleInputFocus = () => {
-    const planets = getAllPlanets();
-    const firstFive = planets.slice(0, 5).map((planet) => ({
-      planet,
-      matchScore: 50, // Score neutro para planetas sem filtro
-      matchType: "name" as const,
-    }));
-    setSearchResults(firstFive);
+    refreshPlanets();
     setShowResults(true);
   };
 
@@ -208,7 +124,6 @@ export function SearchInput() {
           </button>
         )}
 
-        {/* Dropdown de resultados */}
         {showResults && searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-black/70 border border-amber-500/30 rounded-lg max-h-80 overflow-y-auto z-50">
             {searchResults.map((result, index) => (
@@ -227,6 +142,11 @@ export function SearchInput() {
                       {result.planet.data?.name || "Planeta sem nome"}
                     </div>
                     <div className="text-slate-300 text-xs truncate flex items-center gap-2">
+                      {result.planet.data?.isHomePlanet && (
+                        <Badge className="px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/50">
+                          Capital
+                        </Badge>
+                      )}
                       <Badge
                         variant={getFactionVariant(
                           result.planet.data?.domain || result.planet.data?.faction || ""
@@ -235,7 +155,7 @@ export function SearchInput() {
                       >
                         {result.planet.data?.domain ||
                           result.planet.data?.faction ||
-                          "Não especificado"}
+                          "Nao especificado"}
                       </Badge>
                       {result.planet.data?.chapter && (
                         <Badge variant="imperium" className="px-1.5 py-0.5 text-[10px]">
@@ -246,7 +166,7 @@ export function SearchInput() {
                         variant="normal"
                         className="px-1.5 py-0.5 text-[10px]"
                       >
-                        {result.planet.data?.planetType || "Não especificado"}
+                        {result.planet.data?.planetType || "Nao especificado"}
                       </Badge>
                     </div>
                   </div>
@@ -256,7 +176,6 @@ export function SearchInput() {
           </div>
         )}
 
-        {/* Mensagem quando não há resultados */}
         {showResults && searchResults.length === 0 && searchValue.trim() && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800/20 border border-amber-500/30 rounded-md p-4 text-center text-slate-200 text-sm">
             Nenhum planeta encontrado para &quot;{searchValue}&quot;

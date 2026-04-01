@@ -1,14 +1,51 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import { PlanetEntry, PlanetSummaryData } from "../types/interfaces";
+import { PlanetEntry, PlanetSummaryData } from "@/types/interfaces";
+
+function animateCameraTo(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  target: { x: number; y: number; z: number },
+  lookAt: { x: number; y: number; z: number },
+  duration: number
+): void {
+  const currentTarget = controls.target.clone();
+  const currentPosition = camera.position.clone();
+  const startTime = Date.now();
+
+  const animate = () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+
+    controls.target.set(
+      currentTarget.x + (lookAt.x - currentTarget.x) * easeOut,
+      currentTarget.y + (lookAt.y - currentTarget.y) * easeOut,
+      currentTarget.z + (lookAt.z - currentTarget.z) * easeOut
+    );
+
+    camera.position.set(
+      currentPosition.x + (target.x - currentPosition.x) * easeOut,
+      currentPosition.y + (target.y - currentPosition.y) * easeOut,
+      currentPosition.z + (target.z - currentPosition.z) * easeOut
+    );
+
+    controls.update();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  };
+
+  animate();
+}
 
 export class GalaxyNavigator {
   static navigateToPlanet(planet: PlanetEntry<PlanetSummaryData>): void {
     if (typeof window === "undefined") return;
 
     try {
-      // Obter câmera e controles
       const camera = (window as { camera?: THREE.PerspectiveCamera }).camera;
       const controls = (window as { orbit?: OrbitControls }).orbit;
 
@@ -16,60 +53,16 @@ export class GalaxyNavigator {
         return;
       }
 
-      // Posição do planeta
       const planetPosition = planet.position;
+      const distance = 5;
 
-      // Calcular posição da câmera (afastada do planeta)
-      const distance = 5; // Distância de visualização
       const cameraPosition = {
         x: planetPosition.x + distance,
         y: planetPosition.y + distance * 0.3,
         z: planetPosition.z + distance,
       };
 
-      // Posições atuais
-      const currentTarget = controls.target.clone();
-      const currentPosition = camera.position.clone();
-
-      // Configurar animação
-      const duration = 2000; // 2 segundos
-      const startTime = Date.now();
-
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-
-        const newTarget = {
-          x: currentTarget.x + (planetPosition.x - currentTarget.x) * easeOut,
-          y: currentTarget.y + (planetPosition.y - currentTarget.y) * easeOut,
-          z: currentTarget.z + (planetPosition.z - currentTarget.z) * easeOut,
-        };
-
-        const newPosition = {
-          x:
-            currentPosition.x +
-            (cameraPosition.x - currentPosition.x) * easeOut,
-          y:
-            currentPosition.y +
-            (cameraPosition.y - currentPosition.y) * easeOut,
-          z:
-            currentPosition.z +
-            (cameraPosition.z - currentPosition.z) * easeOut,
-        };
-
-        controls.target.set(newTarget.x, newTarget.y, newTarget.z);
-        camera.position.set(newPosition.x, newPosition.y, newPosition.z);
-        controls.update();
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-        }
-      };
-
-      animate();
+      animateCameraTo(camera, controls, cameraPosition, planetPosition, 2000);
     } catch (error) {
       console.error("Erro ao navegar para planeta:", error);
     }
@@ -95,48 +88,9 @@ export class GalaxyNavigator {
         z: targetPosition.z + cameraDistance,
       };
 
-      const currentTarget = controls.target.clone();
-      const currentPosition = camera.position.clone();
-
-      const duration = 2000;
-      const startTime = Date.now();
-
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-
-        const newTarget = {
-          x: currentTarget.x + (targetPosition.x - currentTarget.x) * easeOut,
-          y: currentTarget.y + (targetPosition.y - currentTarget.y) * easeOut,
-          z: currentTarget.z + (targetPosition.z - currentTarget.z) * easeOut,
-        };
-
-        const newPosition = {
-          x:
-            currentPosition.x +
-            (cameraPosition.x - currentPosition.x) * easeOut,
-          y:
-            currentPosition.y +
-            (cameraPosition.y - currentPosition.y) * easeOut,
-          z:
-            currentPosition.z +
-            (cameraPosition.z - currentPosition.z) * easeOut,
-        };
-
-        controls.target.set(newTarget.x, newTarget.y, newTarget.z);
-        camera.position.set(newPosition.x, newPosition.y, newPosition.z);
-        controls.update();
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-        }
-      };
-
-      animate();
+      animateCameraTo(camera, controls, cameraPosition, targetPosition, 2000);
     } catch (error) {
-      console.error("Erro ao navegar para posição:", error);
+      console.error("Erro ao navegar para posicao:", error);
     }
   }
 
@@ -151,12 +105,11 @@ export class GalaxyNavigator {
         return;
       }
 
-      // Posição inicial padrão
       const initialTarget = { x: 0, y: 0, z: 0 };
 
       this.navigateToPosition(initialTarget, 500);
     } catch (error) {
-      console.error("Erro ao resetar câmera:", error);
+      console.error("Erro ao resetar camera:", error);
     }
   }
 }

@@ -7,7 +7,7 @@ import {
   FACTIONS,
   SPACE_MARINES_CHAPTERS,
   SUB_FACTIONS_BY_FACTION,
-} from "@/types/factions";
+} from "@/lib/catalogs/factions";
 import {
   Select,
   SelectContent,

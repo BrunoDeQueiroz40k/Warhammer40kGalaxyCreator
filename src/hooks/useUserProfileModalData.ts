@@ -8,7 +8,7 @@ import {
   updateCurrentUserBannerImage,
   updateCurrentUserProfileImage,
 } from "../lib/profileApi";
-import { fileToBase64 } from "../types/functions";
+import { fileToBase64 } from "@/lib/formatters";
 
 export function useUserProfileModalData(user: AuthUser, open: boolean) {
   const [profile, setProfile] = useState(user);

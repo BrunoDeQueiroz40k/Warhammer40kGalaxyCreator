@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlanetCard } from "../planet/PlanetCard";
 import { PlanetLabel } from "../planet/PlanetLabel";
 import { Planet } from "./objects/planet";
 import * as THREE from "three";
+import { attackPlanet, getPlanets, getRoutes } from "@/lib/campaignApi";
 
 // Extend window interface for global Three.js objects
 declare global {
@@ -16,11 +17,13 @@ declare global {
 interface GalaxyComponentProps {
   showSegmentums: boolean;
   showPlanetNames?: boolean; // Nova prop para controlar exibição dos nomes
+  playerFaction?: string | null;
 }
 
 export default function GalaxyComponent({
   showSegmentums,
   showPlanetNames = false,
+  playerFaction = null,
 }: GalaxyComponentProps) {
   const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
   const [planetScreenPosition, setPlanetScreenPosition] = useState<{
@@ -28,8 +31,8 @@ export default function GalaxyComponent({
     y: number;
   } | null>(null);
   const [isPlanetVisible, setIsPlanetVisible] = useState<boolean>(false);
+  const [isAttacking, setIsAttacking] = useState(false);
 
-  // Estados para nomes dos planetas
   const [visiblePlanets, setVisiblePlanets] = useState<
     Array<{
       planet: Planet;
@@ -37,6 +40,8 @@ export default function GalaxyComponent({
       isVisible: boolean;
     }>
   >([]);
+  const lastPlanetLabelUpdateRef = useRef(0);
+  const lastVisiblePlanetsRef = useRef<typeof visiblePlanets>([]);
 
   useEffect(() => {
     import("./main");
@@ -153,6 +158,12 @@ export default function GalaxyComponent({
         return;
       }
 
+      const now = performance.now();
+      if (now - lastPlanetLabelUpdateRef.current < 200) {
+        requestAnimationFrame(updateAllPlanets);
+        return;
+      }
+
       const planets = galaxy.getPlanets ? galaxy.getPlanets() : [];
       const visiblePlanetsData: Array<{
         planet: Planet;
@@ -186,7 +197,22 @@ export default function GalaxyComponent({
         }
       });
 
-      setVisiblePlanets(visiblePlanetsData);
+      const prev = lastVisiblePlanetsRef.current;
+      const changed =
+        prev.length !== visiblePlanetsData.length ||
+        visiblePlanetsData.some(
+          (v, i) =>
+            v.planet !== prev[i]?.planet ||
+            Math.abs(v.position.x - prev[i].position.x) > 1 ||
+            Math.abs(v.position.y - prev[i].position.y) > 1
+        );
+
+      if (changed) {
+        lastVisiblePlanetsRef.current = visiblePlanetsData;
+        setVisiblePlanets(visiblePlanetsData);
+      }
+
+      lastPlanetLabelUpdateRef.current = now;
       requestAnimationFrame(updateAllPlanets);
     };
 
@@ -210,6 +236,63 @@ export default function GalaxyComponent({
     }
   };
 
+  const handleAttackPlanet = async () => {
+    if (!selectedPlanet?.data?.id || isAttacking) return;
+    try {
+      setIsAttacking(true);
+      await attackPlanet(selectedPlanet.data.id);
+
+      const galaxyInstance = (
+        window as {
+          galaxyInstance?: {
+            clearAllPlanets?: () => void;
+            addPlanetWithoutEditMode?: (planet: unknown) => void;
+          };
+        }
+      ).galaxyInstance;
+
+      if (galaxyInstance?.clearAllPlanets && galaxyInstance?.addPlanetWithoutEditMode) {
+        const planets = await getPlanets();
+        const routes = await getRoutes();
+        galaxyInstance.clearAllPlanets();
+        planets.forEach((planet) => galaxyInstance.addPlanetWithoutEditMode?.(planet));
+        (galaxyInstance as { setRoutes?: (routes: unknown[]) => void }).setRoutes?.(routes);
+        setSelectedPlanet(null);
+      }
+    } catch {
+      window.alert("Falha ao atacar planeta.");
+    } finally {
+      setIsAttacking(false);
+    }
+  };
+
+  const selectedDomain = selectedPlanet?.data?.domain ?? selectedPlanet?.data?.faction ?? "Sem dominio";
+  const homePlanetDomain =
+    typeof window === "undefined"
+      ? null
+      : (
+        window as {
+          galaxyInstance?: { getPlanets?: () => Planet[] };
+        }
+      ).galaxyInstance?.getPlanets?.()
+        .find((planet) => planet.data.isHomePlanet)?.data.domain ?? null;
+  const effectivePlayerDomain =
+    playerFaction ?? homePlanetDomain;
+  const canAttackSelectedPlanet =
+    !!effectivePlayerDomain &&
+    !!selectedPlanet &&
+    !!selectedPlanet.data.id &&
+    selectedDomain !== effectivePlayerDomain &&
+    (typeof window !== "undefined"
+      ? (
+        window as {
+          galaxyInstance?: {
+            canAttackViaRoute?: (targetPlanetId: string, playerDomain: string | null) => boolean;
+          };
+        }
+      ).galaxyInstance?.canAttackViaRoute?.(selectedPlanet.data.id ?? "", effectivePlayerDomain) === true
+      : false);
+
   return (
     <div className="w-full h-full relative">
       <canvas id="canvas" className="w-full h-full block absolute top-0 left-0" />
@@ -218,6 +301,9 @@ export default function GalaxyComponent({
           planet={selectedPlanet.data}
           position={planetScreenPosition}
           onClose={handleCloseCard}
+          onAttack={handleAttackPlanet}
+          canAttack={canAttackSelectedPlanet}
+          isAttacking={isAttacking}
           onEdit={handleEditPlanet}
           onDelete={handleDeletePlanet}
         />

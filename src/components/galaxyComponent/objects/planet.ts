@@ -13,19 +13,38 @@ const texture = new THREE.TextureLoader().load(
 );
 
 const colorMap: { [key: string]: number } = {
-  Azul: 0x0080ff, // strong blue (bright enough for bloom)
-  Verde: 0x00ff80, // strong green (bright enough for bloom)
-  Vermelho: 0xff0000, // strong red-orange (bright enough for bloom)
-  Amarelo: 0xffcc00, // strong yellow (bright enough for bloom)
-  Roxo: 0xcc00ff, // strong purple (bright enough for bloom)
-  "": 0xffffff, // default white
+  Azul: 0x0080ff,
+  Verde: 0x00ff80,
+  Vermelho: 0xff0000,
+  Amarelo: 0xffcc00,
+  Roxo: 0xcc00ff,
+  "": 0xffffff,
 };
 
+const materialPool = new Map<number, THREE.SpriteMaterial>();
+
+function getPooledMaterial(color: number): THREE.SpriteMaterial {
+  let base = materialPool.get(color);
+  if (!base) {
+    base = new THREE.SpriteMaterial({
+      map: texture,
+      color,
+      transparent: true,
+      opacity: 1.0,
+      blending: THREE.AdditiveBlending,
+    });
+    materialPool.set(color, base);
+  }
+  return base.clone();
+}
+
 export interface PlanetData {
+  id?: string;
   name: string;
   faction?: string;
   domain?: string;
   chapter?: string | null;
+  isHomePlanet?: boolean;
   planetType: string;
   color?: string;
   segmentum?: string;
@@ -85,17 +104,10 @@ export class Planet {
   }
 
   toThreeObject(scene: THREE.Scene) {
-    // Create custom material with planet color
     const planetColor = this.data.color
       ? colorMap[this.data.color] || 0xffffff
       : 0xffffff;
-    const planetMaterial = new THREE.SpriteMaterial({
-      map: texture,
-      color: planetColor,
-      transparent: true,
-      opacity: 1.0,
-      blending: THREE.AdditiveBlending,
-    });
+    const planetMaterial = getPooledMaterial(planetColor);
 
     const sprite = new THREE.Sprite(planetMaterial);
     sprite.layers.set(BLOOM_LAYER);

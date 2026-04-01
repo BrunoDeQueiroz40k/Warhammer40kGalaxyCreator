@@ -1,4 +1,4 @@
-import { ExportablePlanetData, GalaxyCacheData, PlanetSchema } from "../types/interfaces";
+import { ExportablePlanetData, GalaxyCacheData } from "@/types/interfaces";
 
 export class GalaxyCache {
   private static readonly CACHE_KEY = "galaxy-cache";
@@ -9,13 +9,15 @@ export class GalaxyCache {
   private static readonly MAX_CACHE_SIZE = 5 * 1024 * 1024; // 5MB máximo para o cache
 
   // Valida se um planeta tem a estrutura correta
-  private static validatePlanet(planet: unknown): planet is PlanetSchema {
+  private static validatePlanet(planet: unknown): planet is ExportablePlanetData {
     if (!planet || typeof planet !== "object" || planet === null) return false;
 
     const p = planet as Record<string, unknown>;
     return (
+      (typeof p.id === "string" || typeof p.id === "undefined") &&
       typeof p.name === "string" &&
       typeof p.faction === "string" &&
+      (typeof p.isHomePlanet === "boolean" || typeof p.isHomePlanet === "undefined") &&
       typeof p.planetType === "string" &&
       typeof p.population === "number" &&
       (p.status === "ativo" || p.status === "destruido") &&
@@ -55,11 +57,6 @@ export class GalaxyCache {
     return localStorage.getItem(this.CONSENT_KEY) === "accepted";
   }
 
-  /**
-   * Fonte de verdade está migrando para o backend.
-   * Mantemos esse cache apenas como fallback/UX enquanto a integração completa
-   * estiver sendo finalizada.
-   */
   static isBackendPreferred(): boolean {
     return true;
   }
